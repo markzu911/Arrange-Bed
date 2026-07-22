@@ -701,7 +701,7 @@ export function VillaBeddingPlacementTool() {
           </div>
           <div>
             <h1>{TOOL_NAME}</h1>
-            <p>智能引导式摆放 · 当前只展示下一步</p>
+            <p>上传素材、确认方案、生成真实卧室效果图</p>
           </div>
         </div>
 

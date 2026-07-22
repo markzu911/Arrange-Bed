@@ -1,7 +1,9 @@
 .toolShell {
   min-height: 100vh;
   padding-bottom: 44px;
-  background: #f5f7fb;
+  background:
+    radial-gradient(circle at top left, rgba(177, 132, 82, 0.14), transparent 32rem),
+    linear-gradient(180deg, #fbfaf7 0%, #f2f5f8 46%, #eef2f5 100%);
 }
 
 .toolHeader {
@@ -12,10 +14,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 16px min(6vw, 70px);
-  background: rgba(255, 255, 255, 0.94);
-  border-bottom: 1px solid #dce4f0;
-  backdrop-filter: blur(12px);
+  padding: 14px min(5vw, 64px);
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(200, 190, 176, 0.6);
+  backdrop-filter: blur(18px);
 }
 
 .brandBlock,
@@ -43,13 +45,15 @@
   width: 42px;
   height: 42px;
   color: #fff;
-  background: #4f46e5;
-  border-radius: 10px;
+  background: linear-gradient(135deg, #1f2937, #8b6f47);
+  border-radius: 8px;
+  box-shadow: 0 10px 22px rgba(31, 41, 55, 0.18);
 }
 
 .brandBlock h1 {
   margin: 0;
-  font-size: 22px;
+  color: #111827;
+  font-size: 21px;
   line-height: 1.2;
 }
 
@@ -75,9 +79,9 @@
 .modeSwitch {
   gap: 4px;
   padding: 4px;
-  background: #edf2f7;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
+  background: #f1eee9;
+  border: 1px solid #ded6cb;
+  border-radius: 8px;
 }
 
 .modeSwitch button,
@@ -101,27 +105,27 @@
 .resultTabs button {
   min-height: 36px;
   padding: 8px 12px;
-  color: #475569;
+  color: #59616c;
   background: transparent;
-  border-radius: 7px;
+  border-radius: 6px;
 }
 
 .modeSwitch .activeMode,
 .choiceGrid .selectedChoice,
 .resultTabs .selectedChoice {
-  color: #4338ca;
+  color: #1f2937;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 5px rgba(31, 41, 55, 0.12);
 }
 
 .integralPill {
   gap: 8px;
   padding: 9px 14px;
-  color: #4338ca;
+  color: #7a5626;
   font-weight: 800;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  border-radius: 9px;
+  background: #fff7e8;
+  border: 1px solid #efd7ad;
+  border-radius: 8px;
 }
 
 .flowHeader,
@@ -140,35 +144,41 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  padding: 34px 0 18px;
+  padding: 30px 0 16px;
 }
 
 .flowHeader span {
-  color: #4f46e5;
+  color: #8b6f47;
   font-weight: 800;
 }
 
 .flowHeader h2 {
   margin: 8px 0 0;
-  font-size: clamp(28px, 4vw, 44px);
+  color: #111827;
+  font-size: clamp(28px, 4vw, 42px);
   line-height: 1.15;
 }
 
 .secondaryButton {
-  color: #334155;
+  color: #303846;
   text-decoration: none;
   background: #fff;
-  border: 1px solid #dce4f0;
+  border: 1px solid #d8d1c7;
   white-space: nowrap;
+}
+
+.secondaryButton:hover {
+  color: #111827;
+  border-color: #bda98c;
 }
 
 .progressRail {
   justify-content: space-between;
   gap: 10px;
-  padding: 10px;
-  background: #fff;
-  border: 1px solid #dce4f0;
-  border-radius: 12px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(216, 209, 199, 0.82);
+  border-radius: 8px;
 }
 
 .progressItem {
@@ -191,14 +201,14 @@
 }
 
 .currentProgress {
-  color: #3730a3;
-  background: #eef2ff;
+  color: #1f2937;
+  background: #f3eadc;
 }
 
 .currentProgress span,
 .doneProgress span {
   color: #fff;
-  background: #4f46e5;
+  background: #8b6f47;
 }
 
 .doneProgress {
@@ -207,16 +217,17 @@
 
 .statusBar {
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 14px;
-  padding: 12px 16px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  padding: 11px 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(216, 209, 199, 0.8);
+  border-radius: 8px;
 }
 
 .statusBar strong {
-  color: #2563eb;
+  color: #7a5626;
 }
 
 .statusBar .errorText {
@@ -234,9 +245,9 @@
 .reviewLayout,
 .resultPage {
   background: #fff;
-  border: 1px solid #dce4f0;
-  border-radius: 14px;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  border: 1px solid #ded7cd;
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
 }
 
 .chatModeStage {
@@ -257,9 +268,9 @@
   align-self: start;
   padding: 18px;
   background: #fff;
-  border: 1px solid #dce4f0;
-  border-radius: 14px;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  border: 1px solid #ded7cd;
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
 }
 
 .chatWorkspace {
@@ -270,9 +281,9 @@
   margin: 28px auto 0;
   overflow: hidden;
   background: #fff;
-  border: 1px solid #dce4f0;
-  border-radius: 12px;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  border: 1px solid #ded7cd;
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
 }
 
 .chatWorkspaceHeader {
@@ -281,7 +292,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 18px 26px;
-  border-bottom: 1px solid #dce4f0;
+  border-bottom: 1px solid #ded7cd;
 }
 
 .chatAgentIdentity,
@@ -336,7 +347,7 @@
   min-height: 0;
   padding: 28px min(8vw, 86px);
   overflow-y: auto;
-  background: #f8fafc;
+  background: #f8f6f2;
 }
 
 .assistantMessage {
@@ -351,8 +362,8 @@
   color: #1e293b;
   line-height: 1.7;
   background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px 12px 12px 12px;
+  border: 1px solid #e3ded7;
+  border-radius: 4px 8px 8px 8px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
@@ -362,9 +373,9 @@
 
 .userBubble {
   color: #fff;
-  background: #4f46e5;
-  border-color: #4f46e5;
-  border-radius: 12px 4px 12px 12px;
+  background: #1f2937;
+  border-color: #1f2937;
+  border-radius: 8px 4px 8px 8px;
 }
 
 .userBubble p {
@@ -444,7 +455,7 @@
   gap: 10px;
   padding: 14px;
   background: #fff;
-  border-top: 1px solid #dce4f0;
+  border-top: 1px solid #ded7cd;
 }
 
 .chatComposer input {
@@ -454,13 +465,14 @@
   padding: 0 16px;
   color: #0f172a;
   font-size: 15px;
-  border: 2px solid #818cf8;
-  border-radius: 10px;
+  border: 1px solid #cdbd9f;
+  border-radius: 8px;
   outline: none;
 }
 
 .chatComposer input:focus {
-  border-color: #4f46e5;
+  border-color: #8b6f47;
+  box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.13);
 }
 
 .sendButton {
@@ -470,9 +482,9 @@
   width: 48px;
   height: 48px;
   color: #fff;
-  background: #4f46e5;
+  background: #1f2937;
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
@@ -510,12 +522,12 @@
 }
 
 .uploadHero {
-  padding: 24px;
+  padding: 18px;
 }
 
 .roomEntryLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
   gap: 18px;
 }
 
@@ -529,16 +541,16 @@
   gap: 16px;
   padding: 18px;
   background: #fff;
-  border: 1px solid #dce4f0;
-  border-radius: 14px;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  border: 1px solid #ded7cd;
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
 }
 
 .virtualRoomHeader {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: #4338ca;
+  color: #8b6f47;
 }
 
 .virtualRoomHeader strong,
@@ -564,11 +576,20 @@
   place-items: center;
   min-height: min(56vh, 560px);
   overflow: hidden;
-  color: #4338ca;
-  background: #f8fafc;
-  border: 2px dashed #818cf8;
-  border-radius: 12px;
+  color: #8b6f47;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(248, 246, 242, 0.92)),
+    repeating-linear-gradient(45deg, rgba(139, 111, 71, 0.055) 0 1px, transparent 1px 18px);
+  border: 1px dashed #bda98c;
+  border-radius: 8px;
   cursor: pointer;
+}
+
+.bigUploader:hover {
+  border-color: #8b6f47;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(246, 241, 233, 0.96)),
+    repeating-linear-gradient(45deg, rgba(139, 111, 71, 0.075) 0 1px, transparent 1px 18px);
 }
 
 .bigUploader input {
@@ -593,7 +614,7 @@
 
 .bigUploader strong {
   color: #111827;
-  font-size: 28px;
+  font-size: 26px;
 }
 
 .bigUploader small {
@@ -625,14 +646,14 @@
 }
 
 .reviewLayout {
-  padding: 14px;
+  padding: 16px;
 }
 
 .previewCard {
   padding: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  background: #faf8f4;
+  border: 1px solid #e3ded7;
+  border-radius: 8px;
 }
 
 .referenceUploader {
@@ -737,16 +758,16 @@
 
 .aiSummary {
   padding: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  background: #faf8f4;
+  border: 1px solid #e3ded7;
+  border-radius: 8px;
 }
 
 .aiSummary div {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #4338ca;
+  color: #8b6f47;
 }
 
 .aiSummary p {
@@ -768,9 +789,9 @@
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #c7d2fe;
-  border-radius: 10px;
-  background: #f8faff;
+  border: 1px solid #d8c7ab;
+  border-radius: 8px;
+  background: #fffaf2;
 }
 
 .planHeader,
@@ -782,7 +803,7 @@
 
 .planHeader {
   justify-content: space-between;
-  color: #3730a3;
+  color: #7a5626;
 }
 
 .planHeader span {
@@ -803,9 +824,9 @@
   gap: 8px;
   align-items: center;
   padding: 8px 10px;
-  color: #1e3a8a;
-  background: #eef4ff;
-  border-left: 3px solid #4f46e5;
+  color: #5b3e1f;
+  background: #f6ead7;
+  border-left: 3px solid #8b6f47;
 }
 
 .planDecision span {
@@ -853,10 +874,21 @@
   min-height: 36px;
   padding: 7px 10px;
   color: #0f172a;
-  border: 1px solid #d5deeb;
-  border-radius: 8px;
+  border: 1px solid #d8d1c7;
+  border-radius: 6px;
   background: #fff;
   font: inherit;
+}
+
+.planField input:focus,
+.planField textarea:focus,
+.reviewPanel textarea:focus,
+.analysisField textarea:focus,
+.compactSettings select:focus,
+.textInput:focus {
+  border-color: #8b6f47;
+  box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.13);
+  outline: none;
 }
 
 .planField textarea {
@@ -919,8 +951,8 @@
   padding: 9px 12px;
   color: #0f172a;
   background: #fff;
-  border: 1px solid #d5deeb;
-  border-radius: 8px;
+  border: 1px solid #d8d1c7;
+  border-radius: 6px;
   outline: none;
 }
 
@@ -956,8 +988,8 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   padding: 10px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #faf8f4;
+  border: 1px solid #e3ded7;
   border-radius: 8px;
 }
 
@@ -981,8 +1013,15 @@
 
 .choiceGrid button,
 .resultTabs button {
-  border: 1px solid #dce4f0;
-  background: #f8fafc;
+  border: 1px solid #d8d1c7;
+  background: #fbfaf7;
+}
+
+.choiceGrid button:hover,
+.resultTabs button:hover {
+  color: #1f2937;
+  border-color: #bda98c;
+  background: #fff;
 }
 
 .foldActions {
@@ -993,9 +1032,9 @@
 .analysisEditor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  background: #faf8f4;
+  border: 1px solid #e3ded7;
+  border-radius: 8px;
 }
 
 .toggleLine {
@@ -1009,9 +1048,14 @@
   padding: 11px 18px;
   color: #fff;
   font-weight: 900;
-  background: #4f46e5;
+  background: #1f2937;
   border-radius: 8px;
-  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.22);
+  box-shadow: 0 10px 22px rgba(31, 41, 55, 0.18);
+}
+
+.primaryButton:hover,
+.primaryInlineButton:hover {
+  background: #111827;
 }
 
 .primaryButton {
@@ -1063,9 +1107,9 @@
   width: min(100%, 1060px);
   margin: 0 auto;
   overflow: hidden;
-  background: #eef2f7;
-  border: 1px solid #dce4f0;
-  border-radius: 12px;
+  background: #ede9e2;
+  border: 1px solid #ded7cd;
+  border-radius: 8px;
 }
 
 .resultImageButton {
@@ -1077,8 +1121,8 @@
   overflow: hidden;
   cursor: zoom-in;
   background: #eef2f7;
-  border: 1px solid #dce4f0;
-  border-radius: 12px;
+  border: 1px solid #ded7cd;
+  border-radius: 8px;
 }
 
 .resultImageButton img {
