@@ -2,8 +2,8 @@
   min-height: 100vh;
   padding-bottom: 44px;
   background:
-    radial-gradient(circle at top left, rgba(177, 132, 82, 0.14), transparent 32rem),
-    linear-gradient(180deg, #fbfaf7 0%, #f2f5f8 46%, #eef2f5 100%);
+    linear-gradient(90deg, rgba(28, 25, 23, 0.055) 0 1px, transparent 1px 80px),
+    linear-gradient(180deg, #f7f1e7 0%, #eee6d9 42%, #e9edf0 100%);
 }
 
 .toolHeader {
@@ -14,9 +14,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 14px min(5vw, 64px);
-  background: rgba(255, 255, 255, 0.88);
-  border-bottom: 1px solid rgba(200, 190, 176, 0.6);
+  padding: 16px min(5vw, 72px);
+  background: rgba(247, 241, 231, 0.84);
+  border-bottom: 1px solid rgba(77, 62, 47, 0.16);
   backdrop-filter: blur(18px);
 }
 
@@ -45,15 +45,17 @@
   width: 42px;
   height: 42px;
   color: #fff;
-  background: linear-gradient(135deg, #1f2937, #8b6f47);
-  border-radius: 8px;
-  box-shadow: 0 10px 22px rgba(31, 41, 55, 0.18);
+  background: #1b1713;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  box-shadow: 0 14px 26px rgba(27, 23, 19, 0.24);
 }
 
 .brandBlock h1 {
   margin: 0;
   color: #111827;
-  font-size: 21px;
+  font-family: "STSong", "Songti SC", "Noto Serif SC", serif;
+  font-size: 24px;
   line-height: 1.2;
 }
 
@@ -79,9 +81,9 @@
 .modeSwitch {
   gap: 4px;
   padding: 4px;
-  background: #f1eee9;
-  border: 1px solid #ded6cb;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(77, 62, 47, 0.18);
+  border-radius: 999px;
 }
 
 .modeSwitch button,
@@ -104,28 +106,28 @@
 .choiceGrid button,
 .resultTabs button {
   min-height: 36px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   color: #59616c;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 999px;
 }
 
 .modeSwitch .activeMode,
 .choiceGrid .selectedChoice,
 .resultTabs .selectedChoice {
-  color: #1f2937;
-  background: #fff;
-  box-shadow: 0 1px 5px rgba(31, 41, 55, 0.12);
+  color: #17130f;
+  background: #ecd2a6;
+  box-shadow: 0 8px 18px rgba(111, 78, 33, 0.16);
 }
 
 .integralPill {
   gap: 8px;
-  padding: 9px 14px;
-  color: #7a5626;
+  padding: 10px 16px;
+  color: #3f2d18;
   font-weight: 800;
-  background: #fff7e8;
-  border: 1px solid #efd7ad;
-  border-radius: 8px;
+  background: #ecd2a6;
+  border: 1px solid rgba(90, 61, 25, 0.18);
+  border-radius: 999px;
 }
 
 .flowHeader,
@@ -139,12 +141,179 @@
   margin-left: auto;
 }
 
+.workbenchFrame {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 22px;
+  width: min(1440px, calc(100vw - 36px));
+  margin: 28px auto 0;
+  align-items: start;
+}
+
+.resultWorkbenchFrame {
+  margin-top: 18px;
+}
+
+.workbenchMain {
+  min-width: 0;
+}
+
+.workbenchMain .flowHeader,
+.workbenchMain .statusBar,
+.workbenchMain .workbenchStage {
+  width: 100%;
+}
+
+.workbenchMain .flowHeader {
+  padding-top: 0;
+}
+
+.workbenchSidebar {
+  position: sticky;
+  top: 116px;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-height: calc(100vh - 124px);
+  margin-top: 28px;
+  padding: 20px;
+  color: #f8efe1;
+  overflow: hidden;
+  background:
+    linear-gradient(140deg, rgba(236, 210, 166, 0.12), transparent 35%),
+    linear-gradient(180deg, #211b15 0%, #12100e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 30px 70px rgba(27, 23, 19, 0.28);
+}
+
+.workbenchSidebar::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 88px;
+  height: 1px;
+  background: #ecd2a6;
+  transform: rotate(-32deg);
+  transform-origin: right center;
+  opacity: 0.74;
+}
+
+.workbenchSidebar .secondaryButton {
+  width: 100%;
+  margin-top: auto;
+  color: #f8efe1;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.sidebarIntro {
+  display: grid;
+  gap: 8px;
+  padding: 2px 2px 14px;
+}
+
+.sidebarIntro span {
+  color: #ecd2a6;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sidebarIntro strong {
+  color: #fffaf2;
+  font-family: "STSong", "Songti SC", "Noto Serif SC", serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.sideProgress {
+  display: grid;
+  gap: 10px;
+}
+
+.sideProgressItem {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 12px;
+  color: rgba(248, 239, 225, 0.68);
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.sideProgressItem span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: #211b15;
+  background: rgba(236, 210, 166, 0.7);
+  border-radius: 50%;
+}
+
+.sideProgressItem b {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sideProgressItem:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.sideProgressItem.currentProgress:disabled {
+  color: #17130f;
+  background: #fffaf2;
+  opacity: 1;
+}
+
+.sideProgressItem.currentProgress:disabled b,
+.sideProgressItem.currentProgress:disabled span {
+  color: #17130f;
+}
+
+.sideProgressItem.currentProgress:disabled span {
+  background: #ecd2a6;
+}
+
+.sideProgressItem.currentProgress,
+.sideProgressItem.doneProgress {
+  color: #fffaf2;
+  opacity: 1;
+}
+
 .flowHeader {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  padding: 30px 0 16px;
+  padding: 4px 0 18px;
+}
+
+.resultWorkbenchFrame .flowHeader {
+  padding-bottom: 10px;
+}
+
+.resultWorkbenchFrame .flowHeader h2 {
+  font-size: clamp(34px, 4.8vw, 56px);
+  line-height: 0.98;
+}
+
+.resultWorkbenchFrame .flowHeader p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.resultWorkbenchFrame .statusBar {
+  display: none;
 }
 
 .flowHeader span {
@@ -153,10 +322,20 @@
 }
 
 .flowHeader h2 {
-  margin: 8px 0 0;
-  color: #111827;
-  font-size: clamp(28px, 4vw, 42px);
-  line-height: 1.15;
+  max-width: 720px;
+  margin: 0;
+  color: #17130f;
+  font-family: "STSong", "Songti SC", "Noto Serif SC", serif;
+  font-size: clamp(46px, 6.8vw, 78px);
+  font-weight: 700;
+  line-height: 0.96;
+}
+
+.flowHeader p {
+  max-width: 620px;
+  margin-top: 14px;
+  font-size: 16px;
+  line-height: 1.7;
 }
 
 .secondaryButton {
@@ -188,6 +367,12 @@
   color: #64748b;
   font-weight: 700;
   border-radius: 8px;
+  background: transparent;
+}
+
+.progressItem:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
 }
 
 .progressItem span {
@@ -219,11 +404,12 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 14px;
-  padding: 11px 14px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(216, 209, 199, 0.8);
-  border-radius: 8px;
+  margin-top: 0;
+  padding: 14px 18px;
+  background: rgba(255, 252, 247, 0.72);
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  border-left: 4px solid #211b15;
+  border-radius: 18px;
 }
 
 .statusBar strong {
@@ -244,10 +430,10 @@
 .generatingCard,
 .reviewLayout,
 .resultPage {
-  background: #fff;
-  border: 1px solid #ded7cd;
-  border-radius: 8px;
-  box-shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
+  background: rgba(255, 252, 247, 0.86);
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  border-radius: 24px;
+  box-shadow: 0 26px 70px rgba(51, 42, 34, 0.12);
 }
 
 .chatModeStage {
@@ -522,13 +708,13 @@
 }
 
 .uploadHero {
-  padding: 18px;
+  padding: 20px;
 }
 
 .roomEntryLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.72fr);
+  gap: 20px;
 }
 
 .roomEntryLayout .uploadHero {
@@ -538,19 +724,21 @@
 .virtualRoomPanel {
   display: grid;
   align-content: start;
-  gap: 16px;
-  padding: 18px;
-  background: #fff;
-  border: 1px solid #ded7cd;
-  border-radius: 8px;
-  box-shadow: 0 18px 44px rgba(31, 41, 55, 0.08);
+  gap: 18px;
+  padding: 22px;
+  background:
+    linear-gradient(150deg, rgba(236, 210, 166, 0.24), transparent 44%),
+    #fffaf2;
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  border-radius: 24px;
+  box-shadow: 0 26px 70px rgba(51, 42, 34, 0.1);
 }
 
 .virtualRoomHeader {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: #8b6f47;
+  color: #6f4e21;
 }
 
 .virtualRoomHeader strong,
@@ -559,8 +747,9 @@
 }
 
 .virtualRoomHeader strong {
-  color: #111827;
-  font-size: 18px;
+  color: #17130f;
+  font-family: "STSong", "Songti SC", "Noto Serif SC", serif;
+  font-size: 24px;
 }
 
 .virtualRoomHeader span {
@@ -574,22 +763,33 @@
   position: relative;
   display: grid;
   place-items: center;
-  min-height: min(56vh, 560px);
+  min-height: min(62vh, 650px);
   overflow: hidden;
-  color: #8b6f47;
+  color: #6f4e21;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(248, 246, 242, 0.92)),
-    repeating-linear-gradient(45deg, rgba(139, 111, 71, 0.055) 0 1px, transparent 1px 18px);
-  border: 1px dashed #bda98c;
-  border-radius: 8px;
+    linear-gradient(120deg, rgba(255, 252, 247, 0.86), rgba(238, 230, 217, 0.92)),
+    linear-gradient(90deg, rgba(33, 27, 21, 0.07) 0 1px, transparent 1px 34px),
+    linear-gradient(0deg, rgba(33, 27, 21, 0.05) 0 1px, transparent 1px 34px);
+  border: 1px solid rgba(77, 62, 47, 0.16);
+  border-radius: 20px;
   cursor: pointer;
 }
 
+.bigUploader::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 1px dashed rgba(111, 78, 33, 0.34);
+  border-radius: 14px;
+  pointer-events: none;
+}
+
 .bigUploader:hover {
-  border-color: #8b6f47;
+  border-color: rgba(111, 78, 33, 0.42);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(246, 241, 233, 0.96)),
-    repeating-linear-gradient(45deg, rgba(139, 111, 71, 0.075) 0 1px, transparent 1px 18px);
+    linear-gradient(120deg, rgba(255, 252, 247, 0.96), rgba(238, 230, 217, 1)),
+    linear-gradient(90deg, rgba(33, 27, 21, 0.08) 0 1px, transparent 1px 34px),
+    linear-gradient(0deg, rgba(33, 27, 21, 0.06) 0 1px, transparent 1px 34px);
 }
 
 .bigUploader input {
@@ -607,14 +807,17 @@
 .bigUploader span {
   display: grid;
   place-items: center;
-  gap: 12px;
-  padding: 32px;
+  gap: 14px;
+  max-width: 520px;
+  padding: 44px;
   text-align: center;
 }
 
 .bigUploader strong {
-  color: #111827;
-  font-size: 26px;
+  color: #17130f;
+  font-family: "STSong", "Songti SC", "Noto Serif SC", serif;
+  font-size: 36px;
+  line-height: 1.08;
 }
 
 .bigUploader small {
@@ -625,6 +828,8 @@
 .bigUploader em {
   font-style: normal;
   font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .busyOverlay {
@@ -646,69 +851,22 @@
 }
 
 .reviewLayout {
-  padding: 16px;
+  padding: 20px;
 }
 
 .previewCard {
-  padding: 14px;
-  background: #faf8f4;
-  border: 1px solid #e3ded7;
-  border-radius: 8px;
-}
-
-.referenceUploader {
-  display: grid;
-  gap: 12px;
-  align-content: start;
   padding: 16px;
-  background: #f8fafc;
-  border: 1px solid #dce4f0;
-  border-radius: 10px;
+  background: #fffaf2;
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  border-radius: 18px;
 }
 
-.referenceUploader strong,
-.referenceUploader span {
-  display: block;
-}
 
-.referenceUploader span {
-  margin-top: 5px;
-  color: #64748b;
-  font-size: 13px;
-}
 
-.referenceThumbs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
 
-.referenceThumbs img {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border: 1px solid #dce4f0;
-  border-radius: 6px;
-}
 
-.referenceUploadButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 8px 10px;
-  color: #4338ca;
-  background: #fff;
-  border: 1px dashed #818cf8;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 13px;
-}
 
-.referenceUploadButton input {
-  display: none;
-}
+
 
 .previewCard h3 {
   margin: 0 0 10px;
@@ -751,47 +909,48 @@
 
 .planOverview {
   display: grid;
-  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
-  gap: 12px;
+  grid-template-columns: minmax(260px, 0.66fr) minmax(0, 1.34fr);
+  gap: 16px;
   align-items: start;
 }
 
 .aiSummary {
-  padding: 12px;
-  background: #faf8f4;
-  border: 1px solid #e3ded7;
-  border-radius: 8px;
+  padding: 18px;
+  background: #17130f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  box-shadow: 0 20px 46px rgba(23, 19, 15, 0.2);
 }
 
 .aiSummary div {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #8b6f47;
+  color: #ecd2a6;
 }
 
 .aiSummary p {
-  margin: 8px 0;
-  color: #111827;
+  margin: 12px 0;
+  color: #fffaf2;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.7;
 }
 
 .aiSummary ul {
   margin: 0;
   padding-left: 18px;
-  color: #475569;
+  color: rgba(248, 239, 225, 0.72);
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.6;
 }
 
 .planCard {
   display: grid;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid #d8c7ab;
-  border-radius: 8px;
-  background: #fffaf2;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 252, 247, 0.86);
 }
 
 .planHeader,
@@ -803,7 +962,7 @@
 
 .planHeader {
   justify-content: space-between;
-  color: #7a5626;
+  color: #6f4e21;
 }
 
 .planHeader span {
@@ -823,10 +982,11 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  padding: 8px 10px;
-  color: #5b3e1f;
-  background: #f6ead7;
-  border-left: 3px solid #8b6f47;
+  padding: 12px 14px;
+  color: #3f2d18;
+  background: #f3dfb8;
+  border-left: 0;
+  border-radius: 12px;
 }
 
 .planDecision span {
@@ -857,7 +1017,7 @@
 .planGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .planField {
@@ -871,12 +1031,12 @@
 .planField input,
 .planField textarea {
   width: 100%;
-  min-height: 36px;
-  padding: 7px 10px;
-  color: #0f172a;
-  border: 1px solid #d8d1c7;
-  border-radius: 6px;
-  background: #fff;
+  min-height: 42px;
+  padding: 10px 12px;
+  color: #17130f;
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.76);
   font: inherit;
 }
 
@@ -948,11 +1108,11 @@
 .analysisField textarea {
   width: 100%;
   min-height: 42px;
-  padding: 9px 12px;
-  color: #0f172a;
-  background: #fff;
-  border: 1px solid #d8d1c7;
-  border-radius: 6px;
+  padding: 10px 12px;
+  color: #17130f;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  border-radius: 12px;
   outline: none;
 }
 
@@ -980,7 +1140,7 @@
 .toggleControl input {
   width: 18px;
   height: 18px;
-  accent-color: #4f46e5;
+  accent-color: #6f4e21;
 }
 
 .modelOptions {
@@ -988,9 +1148,9 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   padding: 10px;
-  background: #faf8f4;
-  border: 1px solid #e3ded7;
-  border-radius: 8px;
+  background: rgba(247, 241, 231, 0.72);
+  border: 1px solid rgba(77, 62, 47, 0.1);
+  border-radius: 14px;
 }
 
 .modelOptions > div {
@@ -1013,14 +1173,14 @@
 
 .choiceGrid button,
 .resultTabs button {
-  border: 1px solid #d8d1c7;
-  background: #fbfaf7;
+  border: 1px solid rgba(77, 62, 47, 0.14);
+  background: rgba(255, 252, 247, 0.76);
 }
 
 .choiceGrid button:hover,
 .resultTabs button:hover {
-  color: #1f2937;
-  border-color: #bda98c;
+  color: #17130f;
+  border-color: rgba(111, 78, 33, 0.32);
   background: #fff;
 }
 
@@ -1032,9 +1192,9 @@
 .analysisEditor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 14px;
-  background: #faf8f4;
-  border: 1px solid #e3ded7;
-  border-radius: 8px;
+  background: rgba(247, 241, 231, 0.72);
+  border: 1px solid rgba(77, 62, 47, 0.1);
+  border-radius: 16px;
 }
 
 .toggleLine {
@@ -1044,18 +1204,18 @@
 
 .primaryButton,
 .primaryInlineButton {
-  min-height: 46px;
-  padding: 11px 18px;
-  color: #fff;
+  min-height: 50px;
+  padding: 13px 22px;
+  color: #17130f;
   font-weight: 900;
-  background: #1f2937;
-  border-radius: 8px;
-  box-shadow: 0 10px 22px rgba(31, 41, 55, 0.18);
+  background: #ecd2a6;
+  border-radius: 999px;
+  box-shadow: 0 18px 34px rgba(111, 78, 33, 0.22);
 }
 
 .primaryButton:hover,
 .primaryInlineButton:hover {
-  background: #111827;
+  background: #f5d99d;
 }
 
 .primaryButton {
@@ -1089,17 +1249,17 @@
 }
 
 .resultPage {
-  padding: 20px;
+  padding: 14px;
 }
 
 .resultTabs {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .resultSummary {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: #64748b;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .compareBox {
@@ -1116,6 +1276,8 @@
   position: relative;
   display: block;
   width: min(100%, 1060px);
+  height: min(62vh, calc(100vh - 292px));
+  min-height: 360px;
   margin: 0 auto;
   padding: 0;
   overflow: hidden;
@@ -1244,18 +1406,18 @@
 
 .resultActions {
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 10px;
 }
 
 .qualityPassed,
 .qualityWarning {
   display: grid;
-  gap: 10px;
+  gap: 6px;
   max-width: 1060px;
-  margin: 16px auto 0;
-  padding: 14px 16px;
+  margin: 10px auto 0;
+  padding: 10px 12px;
   border-radius: 8px;
 }
 
@@ -1316,12 +1478,19 @@
   }
 }
 
+@media (max-width: 1120px) {
+  .workbenchFrame {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 880px) {
   .toolHeader,
   .flowHeader,
   .focusLayout,
   .roomEntryLayout,
-  .chatModeStage {
+  .chatModeStage,
+  .workbenchFrame {
     grid-template-columns: 1fr;
   }
 
@@ -1364,6 +1533,45 @@
 
   .chatPanel {
     position: static;
+  }
+
+  .workbenchSidebar {
+    position: static;
+  }
+
+  .workbenchSidebar {
+    min-height: auto;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .workbenchSidebar::after {
+    display: none;
+  }
+
+  .sideProgress {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .sideProgressItem {
+    grid-template-columns: 24px minmax(0, 1fr);
+    min-height: 42px;
+    padding: 8px;
+  }
+
+  .sideProgressItem span {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sideProgressItem b {
+    font-size: 13px;
+  }
+
+  .resultImageButton {
+    height: auto;
+    min-height: 0;
   }
 
   .chatWorkspace {

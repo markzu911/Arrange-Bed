@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   Download,
-  ImagePlus,
   Loader2,
   Maximize2,
   PenLine,
@@ -19,7 +18,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { defaultSettings, perspectiveLabels, TOOL_COST, TOOL_NAME, virtualRoomStyleLabels } from "./constants";
 import styles from "./VillaBeddingPlacementTool.module.css";
 import { analyzeScene, checkGeneratedPlacement, eraseExistingBeds, extractBeddingForeground, generatePlacementImages, generateVirtualRoomImages } from "./services/gemini";
-import { compressDataUrlToBlob, compressImage, GEMINI_IMAGE_TARGET_BYTES, GEMINI_REFERENCE_TARGET_BYTES } from "./services/image";
+import { compressDataUrlToBlob, compressImage, GEMINI_IMAGE_TARGET_BYTES } from "./services/image";
 import {
   consumeIntegral,
   createInitialPlatformContext,
@@ -63,29 +62,20 @@ function userFacingError(error: unknown, fallback: string): string {
 function createManualAnalysis(): SceneAnalysis {
   return {
     roomSummary: "AI 解析暂不可用，请根据卧室实际情况补充要求。",
-    beddingSummary: "请确认目标床具的款式、颜色、材质、床头、床架、床垫厚度和整体轮廓。",
-    beddingIdentity: {
-      sizeSense: "以参考图为准",
-      silhouette: "以参考图为准",
-      headboard: "以参考图为准",
-      frame: "以参考图为准",
-      mattress: "以参考图为准",
-      material: "以参考图为准",
-      color: "以参考图为准",
-      details: []
-    },
+    beddingSummary: "请确认目标床具的款式、颜色、材质和整体轮廓。",
+    beddingIdentity: { sizeSense: "以参考图为准", silhouette: "以参考图为准", headboard: "以参考图为准", frame: "以参考图为准", mattress: "以参考图为准", material: "以参考图为准", color: "以参考图为准", details: [] },
     lighting: "请保留原卧室的主要光源方向，并生成自然接地阴影。",
-    perspective: "请保持卧室透视关系与门、衣柜、窗户和主要通道完整。",
-    placementAdvice: "请在下方填写希望保留或替换的家具、床头靠向和通道要求。",
-    constraints: ["不要遮挡门、窗、衣柜和主要通道", "未明确要求时保留原有家具和结构"],
+    perspective: "请保持卧室透视关系与主要通道完整。",
+    placementAdvice: "请在下方填写希望保留或替换的家具、床具朝向和通道要求。",
+    constraints: ["不要遮挡主要通道", "未明确要求时保留原有家具和结构"],
     placementPlan: {
       summary: "等待您手动确认摆放方案。",
-      placement: "由 AI 根据卧室空间、床头墙、动线和您的要求选择合适位置",
-      facing: "根据床头墙、窗户、衣柜和您的要求确定朝向",
+      placement: "由 AI 根据卧室空间、动线和您的要求选择合适位置",
+      facing: "根据主要视觉焦点和您的要求确定朝向",
       scale: "保持与卧室尺度和透视关系协调",
       preserve: ["保留未明确要求移除的原有结构、家具与装饰"],
       remove: ["无明确移除对象"],
-      avoid: ["不要遮挡门、窗、衣柜、主要通道、采光和床头柜/插座位置"],
+      avoid: ["不要遮挡通道、门窗、主要采光和核心功能区"],
       rationale: ["AI 解析不可用，需由用户补充确认"],
       candidates: [],
       selectedCandidateId: ""
@@ -95,30 +85,30 @@ function createManualAnalysis(): SceneAnalysis {
 
 function createVirtualRoomAnalysis(styleLabel: string): SceneAnalysis {
   return {
-    roomSummary: `跳过上传卧室，将由 AI 生成 ${styleLabel} 虚拟卧室。`,
+    roomSummary: `跳过上传卧室，将由 AI 生成 ${styleLabel} 虚拟别墅卧室。`,
     beddingSummary: "以用户上传的床具图片作为唯一产品参考，生成床具与虚拟卧室融合的结果图。",
     beddingIdentity: {
       sizeSense: "以床具参考图为准",
       silhouette: "以床具参考图的整体轮廓和比例为准",
-      headboard: "以床具参考图的床头造型为准",
-      frame: "以床具参考图的床架轮廓为准",
-      mattress: "以床具参考图的床垫厚度为准",
+      headboard: "以床具参考图为准",
+      frame: "以床具参考图为准",
+      mattress: "以床具参考图为准",
       material: "以床具参考图可见材质为准",
       color: "以床具参考图主色为准",
-      details: ["保留参考图中的软包、纹理、缝线、拉扣、床脚和可见配件"]
+      details: ["保留参考图中的模块数量", "保留扶手、靠背、坐垫、缝线和脚部细节"]
     },
     lighting: "由 AI 根据虚拟卧室风格生成自然主光源、接地阴影和环境反射。",
-    perspective: "沿用远景、中近景、近景视角设置，围绕同一个虚拟卧室和同一张床具生成。",
-    placementAdvice: `在 ${styleLabel} 虚拟卧室的核心床区摆放目标床具，保证床具是画面主体且与空间风格协调。`,
-    constraints: ["不得改变目标床具款式、颜色、材质和结构", "不得生成白底产品图或脱离卧室的棚拍图", "不得添加第二张相似主床"],
+    perspective: "沿用原有远景、中近景、近景视角设置，围绕同一个虚拟卧室和同一张床具生成。",
+    placementAdvice: `在 ${styleLabel} 虚拟卧室的核心会客区摆放目标床具，保证床具是画面主体且与空间风格协调。`,
+    constraints: ["不得改变目标床具款式、颜色、材质和结构", "不得生成白底产品图或脱离卧室的棚拍图", "不得添加第二张相似主床具"],
     placementPlan: {
-      summary: `采用 ${styleLabel} 虚拟卧室方案，以目标床具作为床区核心生成摆放效果。`,
-      placement: "将目标床具放置在虚拟卧室主要床区，与床头墙、床头柜、地毯/地面和窗/衣柜形成完整空间关系",
-      facing: "床头靠向合适实墙，由 AI 根据虚拟卧室布局自动确定",
-      scale: "按卧室尺度自然匹配，保证床具接地、比例真实、床边与床尾留白舒适",
+      summary: `采用 ${styleLabel} 虚拟卧室方案，以目标床具作为会客区核心生成摆放效果。`,
+      placement: "将目标床具放置在虚拟卧室主要会客区，与茶几、地毯和背景墙形成完整空间关系",
+      facing: "面向卧室主要视觉焦点，由 AI 根据虚拟卧室布局自动确定",
+      scale: "按别墅卧室尺度自然匹配，保证床具接地、比例真实、空间留白舒适",
       preserve: [`整体装修风格保持 ${styleLabel}`, "保留目标床具的产品特征"],
       remove: ["无需移除用户卧室物品"],
-      avoid: ["不要生成展厅白底", "不要让软装遮挡床具主体", "不要把床具替换成相似款", "不要遮挡门窗衣柜和主要通道"],
+      avoid: ["不要生成展厅白底", "不要让软装遮挡床具主体", "不要把床具替换成相似款"],
       rationale: ["用户选择跳过上传卧室，直接生成虚拟卧室效果图", "该方案不消耗积分"],
       candidates: [],
       selectedCandidateId: ""
@@ -128,7 +118,7 @@ function createVirtualRoomAnalysis(styleLabel: string): SceneAnalysis {
 
 const initialChatMessages: ChatMessage[] = [
   { role: "assistant", text: "您好，我是您的 AI 床具摆放助手。" },
-  { role: "assistant", text: "我可以把您提供的床具自然摆放到卧室里，保留床具款式、床头、床架和床垫细节，并匹配空间透视、光线和阴影。要开始摆放吗？" }
+  { role: "assistant", text: "我可以把您提供的床具自然摆放到别墅卧室里，保留床具款式，并匹配空间透视、光线和阴影。要开始摆放吗？" }
 ];
 
 const ratioClass: Record<ImageRatio, string> = {
@@ -151,7 +141,6 @@ export function VillaBeddingPlacementTool() {
   const [mode, setMode] = useState<ToolMode>("agent");
   const [guidedStep, setGuidedStep] = useState<GuidedStep>("room");
   const [roomImage, setRoomImage] = useState<UploadedImage | null>(null);
-  const [roomReferenceImages, setRoomReferenceImages] = useState<UploadedImage[]>([]);
   const [useVirtualRoom, setUseVirtualRoom] = useState(false);
   const [beddingImage, setBeddingImage] = useState<UploadedImage | null>(null);
   const [beddingForegroundImage, setBeddingForegroundImage] = useState<UploadedImage | null>(null);
@@ -218,7 +207,7 @@ export function VillaBeddingPlacementTool() {
         eyebrow: "第 1 步",
         title: "先选择卧室来源",
         desc: "可以上传客户卧室照片，也可以跳过卧室，直接生成指定风格的虚拟卧室。",
-        hint: "上传真实卧室会进入原图摆放流程；虚拟卧室只需要床具图和装修风格。"
+        hint: "上传真实卧室会进入原摆放流程；虚拟卧室只需要床具图和装修风格。"
       };
     }
     if (guidedStep === "bedding") {
@@ -226,7 +215,7 @@ export function VillaBeddingPlacementTool() {
         eyebrow: "第 2 步",
         title: "现在上传床具照片",
         desc: useVirtualRoom ? "床具上传后会直接准备虚拟卧室方案。" : "床具上传后会自动分析款式、材质和适合的摆放方式。",
-        hint: "建议床具主体完整，主体完整、床头和床架清晰，背景尽量简单。"
+        hint: "建议床具主体完整，正面或 45 度角，背景尽量简单。"
       };
     }
     if (guidedStep === "review") {
@@ -273,9 +262,9 @@ export function VillaBeddingPlacementTool() {
       return;
     }
 
-    if (/(开始|摆放|试摆|上传.*(卧室|房间)|(卧室|房间).*照片)/.test(note) && !roomImage) {
+    if (/(开始|摆放|上传.*卧室|卧室.*照片)/.test(note) && !roomImage) {
       setAgentFlowStarted(true);
-      addChatMessage({ role: "assistant", text: "好的，我们开始。请先上传卧室照片，我会自动分析空间、光线和透视关系。" });
+      addChatMessage({ role: "assistant", text: "好的，我们开始。请先上传别墅卧室照片，我会自动分析空间、光线和透视关系。" });
       return;
     }
 
@@ -302,7 +291,6 @@ export function VillaBeddingPlacementTool() {
     setUseVirtualRoom(true);
     setAgentFlowStarted(true);
     setRoomImage(null);
-    setRoomReferenceImages([]);
     setBeddingImage(null);
     setBeddingForegroundImage(null);
     setClearedRoomImage(null);
@@ -314,23 +302,22 @@ export function VillaBeddingPlacementTool() {
     addChatMessage({ role: "assistant", text: `已切换为 ${styleLabel} 虚拟卧室模式。请上传床具照片，后续会直接生成虚拟卧室效果图。` });
   }
 
-  async function handleUpload(kind: "room" | "bedding" | "room-reference", file?: File) {
+  async function handleUpload(kind: "room" | "bedding", file?: File) {
     if (!file) return;
     setError("");
     setStatus("正在压缩图片...");
     try {
       const image = await compressImage(
         file,
-        kind === "room-reference" ? 900 : undefined,
-        kind === "room-reference" ? 0.68 : undefined,
-        kind === "room-reference" ? GEMINI_REFERENCE_TARGET_BYTES : GEMINI_IMAGE_TARGET_BYTES
+        undefined,
+        undefined,
+        GEMINI_IMAGE_TARGET_BYTES
       );
       setResults([]);
       if (kind === "room") {
         setUseVirtualRoom(false);
         setAgentFlowStarted(true);
         setRoomImage(image);
-        setRoomReferenceImages([]);
         setBeddingImage(null);
         setBeddingForegroundImage(null);
       setClearedRoomImage(null);
@@ -338,18 +325,14 @@ export function VillaBeddingPlacementTool() {
       setReviewSubstep("plan");
       setGuidedStep("room");
         addChatMessage({ role: "user", text: "已上传卧室照片", image });
-        addChatMessage({ role: "assistant", text: "卧室照片已收到，我正在分析卧室空间、床位、门窗衣柜、通道和采光、光线和透视关系。" });
+        addChatMessage({ role: "assistant", text: "卧室照片已收到，我正在分析空间尺度、光线和透视关系。" });
         await autoAnalyzeRoom(image);
-      } else if (kind === "room-reference") {
-        setRoomReferenceImages((current) => current.length >= 5 ? current : [...current, image]);
-        setStatus("已加入空间补充角度，后续分析和生成会一并参考");
-        addChatMessage({ role: "user", text: "已补充一张卧室不同角度照片", image });
       } else {
         setBeddingImage(image);
         setBeddingForegroundImage(null);
         setClearedRoomImage(null);
         addChatMessage({ role: "user", text: "已上传床具照片", image });
-        addChatMessage({ role: "assistant", text: "床具照片已收到，我正在识别款式、尺寸感、床架、床头、床垫厚度、颜色、材质和比例。" });
+        addChatMessage({ role: "assistant", text: "床具照片已收到，我正在识别款式、材质、颜色和比例。" });
         await autoAnalyzeBedding(image);
       }
     } catch (err) {
@@ -365,14 +348,14 @@ export function VillaBeddingPlacementTool() {
       if (!isStandaloneTrial) {
         await verifyIntegral(platform);
       }
-      const nextAnalysis = await analyzeScene(nextRoomImage, null, roomReferenceImages, settings.model, platform.context, platform.prompt, settings.notes);
+      const nextAnalysis = await analyzeScene(nextRoomImage, null, [], settings.model, platform.context, platform.prompt, settings.notes);
       setAnalysis({
         ...nextAnalysis,
         beddingSummary: "等待上传床具照片后补充床具分析。"
       });
       setGuidedStep("bedding");
       setStatus("卧室解析完成，请上传床具照片");
-      addChatMessage({ role: "assistant", text: "卧室解析完成。现在请上传要摆放的床具照片，建议选择主体完整、床头和床架清晰的图片。" });
+      addChatMessage({ role: "assistant", text: "卧室解析完成。现在请上传要摆放的床具照片，建议选择正面或 45 度角、主体完整的图片。" });
     } catch (err) {
       setError(userFacingError(err, "卧室解析失败"));
       setStatus("卧室解析失败，您仍可继续上传床具后重试");
@@ -417,12 +400,12 @@ export function VillaBeddingPlacementTool() {
       if (!isStandaloneTrial) {
         await verifyIntegral(platform);
       }
-      const nextAnalysis = await analyzeScene(roomImage, nextBeddingImage, roomReferenceImages, settings.model, platform.context, platform.prompt, settings.notes);
+      const nextAnalysis = await analyzeScene(roomImage, nextBeddingImage, [], settings.model, platform.context, platform.prompt, settings.notes);
       setAnalysis(nextAnalysis);
       setStatus("正在提取并核验床具前景...");
       const foreground = await extractBeddingForeground(nextBeddingImage, settings);
       setBeddingForegroundImage(foreground);
-      setStatus("正在移除原场景中的旧床，生成干净卧室底图...");
+      setStatus("正在移除原场景中的床具，生成干净摆放底图...");
       const clearedRoom = await eraseExistingBeds(roomImage, settings);
       setClearedRoomImage(clearedRoom);
       setReviewSubstep("plan");
@@ -450,7 +433,7 @@ export function VillaBeddingPlacementTool() {
     setIsGenerating(true);
     setGuidedStep("generating");
     setStatus("正在生成摆放效果图...");
-    addChatMessage({ role: "assistant", text: useVirtualRoom ? "方案已确认，正在生成虚拟卧室效果图。我会保留床具产品特征，并匹配装修风格、光照和卧室空间、床位、门窗衣柜、通道和采光。" : "方案已确认，正在生成摆放效果图。我会匹配床具尺度、卧室透视、光照和地面阴影。" });
+    addChatMessage({ role: "assistant", text: useVirtualRoom ? "方案已确认，正在生成虚拟卧室效果图。我会保留床具产品特征，并匹配装修风格、光照和空间尺度。" : "方案已确认，正在生成摆放效果图。我会匹配床具尺度、卧室透视、光照和地面阴影。" });
     try {
       if (!useVirtualRoom && !isStandaloneTrial) {
         await verifyIntegral(platform);
@@ -460,7 +443,7 @@ export function VillaBeddingPlacementTool() {
         : settings;
       const images = useVirtualRoom
         ? await generateVirtualRoomImages(beddingImage, analysis, generationSettings, platform.context, platform.prompt)
-        : await generatePlacementImages(clearedRoomImage as UploadedImage, beddingForegroundImage as UploadedImage, roomReferenceImages, analysis, generationSettings, platform.context, platform.prompt);
+        : await generatePlacementImages(clearedRoomImage as UploadedImage, beddingForegroundImage as UploadedImage, [], analysis, generationSettings, platform.context, platform.prompt);
       if (images.length !== generationSettings.perspectives.length) {
         throw new Error(`视角结果不完整：已选择 ${generationSettings.perspectives.length} 个视角，但仅生成 ${images.length} 张图片。请重新生成。`);
       }
@@ -495,7 +478,7 @@ export function VillaBeddingPlacementTool() {
           const qualities = await Promise.all(generated.map((item) => checkGeneratedPlacement(
             roomImage,
             beddingImage,
-            roomReferenceImages,
+            [],
             item.imageUrl,
             analysis,
             generationSettings,
@@ -581,12 +564,29 @@ export function VillaBeddingPlacementTool() {
     });
   }
 
+  function canVisitStep(step: GuidedStep) {
+    if (step === "room") return !isGenerating;
+    if (step === "bedding") return !isGenerating && (useVirtualRoom || Boolean(roomImage));
+    if (step === "review") return !isGenerating && Boolean(analysis);
+    if (step === "result") return !isGenerating && results.length > 0;
+    return false;
+  }
+
+  function goToStep(step: GuidedStep) {
+    if (!canVisitStep(step)) return;
+    setError("");
+    if (step === "review") {
+      setReviewSubstep("settings");
+    }
+    setGuidedStep(step);
+    setStatus(step === "bedding" ? "可查看或重新上传床具照片，已有结果会保留到重新上传或重新生成为止" : "");
+  }
+
   function resetFlow() {
     setGuidedStep("room");
     setReviewSubstep("plan");
     setUseVirtualRoom(false);
     setRoomImage(null);
-    setRoomReferenceImages([]);
     setBeddingImage(null);
     setBeddingForegroundImage(null);
     setClearedRoomImage(null);
@@ -623,13 +623,7 @@ export function VillaBeddingPlacementTool() {
           {useVirtualRoom ? (
             <VirtualRoomSummary selectedStyle={settings.virtualRoomStyle} />
           ) : (
-            <>
-              <PreviewCard title="卧室已解析" image={roomImage} loading={isAnalyzingRoom} />
-              <RoomReferenceUploader
-                images={roomReferenceImages}
-                onFiles={(files) => files.forEach((file) => handleUpload("room-reference", file))}
-              />
-            </>
+            <PreviewCard title="卧室已解析" image={roomImage} loading={isAnalyzingRoom} />
           )}
           <UploadStep
             kind="bedding"
@@ -675,6 +669,7 @@ export function VillaBeddingPlacementTool() {
       {guidedStep === "result" && currentResult && (
         <ResultStep
           roomImage={roomImage}
+          beddingImage={beddingImage}
           useVirtualRoom={useVirtualRoom}
           result={currentResult}
           results={results}
@@ -684,6 +679,7 @@ export function VillaBeddingPlacementTool() {
           onSelectResult={setSelectedResult}
           onCompareChange={setCompareValue}
           onBack={() => { setReviewSubstep("settings"); setGuidedStep("review"); }}
+          onBackToBedding={() => goToStep("bedding")}
           onRegenerate={handleGenerate}
           onCorrect={() => handleGenerate(currentResult.quality?.correctionPrompt || "")}
           isGenerating={isGenerating}
@@ -735,41 +731,56 @@ export function VillaBeddingPlacementTool() {
           onReset={resetFlow}
         />
       ) : (
-        <>
-          <section className={styles.flowHeader}>
-            <div>
+        <section className={`${styles.workbenchFrame} ${guidedStep === "result" ? styles.resultWorkbenchFrame : ""}`}>
+          <aside className={styles.workbenchSidebar}>
+            <div className={styles.sidebarIntro}>
               <span>{guideCopy.eyebrow}</span>
-              <h2>{guideCopy.title}</h2>
-              <p>{guideCopy.desc}</p>
+              <strong>摆放流程</strong>
             </div>
+            <nav className={styles.sideProgress} aria-label="摆放步骤">
+              {stepMeta.map((item, index) => {
+                const activeIndex = stepMeta.findIndex((step) => step.key === guidedStep);
+                const isDone = index < activeIndex;
+                const isActive = item.key === guidedStep;
+                const canVisit = canVisitStep(item.key);
+                return (
+                  <button
+                    className={`${styles.sideProgressItem} ${isActive ? styles.currentProgress : ""} ${isDone ? styles.doneProgress : ""}`}
+                    key={item.key}
+                    onClick={() => goToStep(item.key)}
+                    disabled={!canVisit || isActive}
+                    title={canVisit && !isActive ? `返回${item.label}` : item.label}
+                  >
+                    <span>{isDone ? <CheckCircle2 size={16} /> : index + 1}</span>
+                    <b>{item.label}</b>
+                  </button>
+                );
+              })}
+            </nav>
             <button className={styles.secondaryButton} onClick={resetFlow}>
               <RefreshCcw size={16} />
               重新开始
             </button>
+          </aside>
+
+          <section className={styles.workbenchMain}>
+            <section className={styles.flowHeader}>
+              <div>
+                <h2>{guideCopy.title}</h2>
+                <p>{guideCopy.desc}</p>
+              </div>
+            </section>
+
+            <section className={styles.statusBar}>
+              <span>{guideCopy.hint}</span>
+              {status && <strong>{status}</strong>}
+              {error && <strong className={styles.errorText}>{error}</strong>}
+            </section>
+
+            <section className={styles.workbenchStage}>{currentStepContent}</section>
           </section>
 
-          <section className={styles.progressRail}>
-            {stepMeta.map((item, index) => {
-              const activeIndex = stepMeta.findIndex((step) => step.key === guidedStep);
-              const isDone = index < activeIndex;
-              const isActive = item.key === guidedStep;
-              return (
-                <div className={`${styles.progressItem} ${isActive ? styles.currentProgress : ""} ${isDone ? styles.doneProgress : ""}`} key={item.key}>
-                  <span>{isDone ? <CheckCircle2 size={16} /> : index + 1}</span>
-                  {item.label}
-                </div>
-              );
-            })}
-          </section>
-
-          <section className={styles.statusBar}>
-            <span>{guideCopy.hint}</span>
-            {status && <strong>{status}</strong>}
-            {error && <strong className={styles.errorText}>{error}</strong>}
-          </section>
-
-          <section className={styles.workbenchStage}>{currentStepContent}</section>
-        </>
+        </section>
       )}
     </main>
   );
@@ -807,7 +818,7 @@ function ChatWorkspace({
           <span className={styles.chatAvatar}><Bot size={19} /></span>
           <div>
             <strong>AI 床具摆放助手</strong>
-            <small>正在为您提供一对一床具摆放服务</small>
+            <small>正在为您提供一对一摆放服务</small>
           </div>
         </div>
         <button className={styles.secondaryButton} onClick={onReset}>
@@ -851,7 +862,7 @@ function ChatWorkspace({
               onSend();
             }
           }}
-          placeholder="补充任何要求，例如：床头靠实墙、替换旧床、保留床头柜和衣柜通道、不要挡窗…"
+          placeholder="补充任何要求，例如：朝向壁炉、替换旧床具、保留地毯、留出通道…"
         />
         <button className={styles.sendButton} onClick={onSend} aria-label="发送摆放要求" disabled={!draft.trim()}>
           <Send size={19} />
@@ -962,41 +973,6 @@ function PreviewCard({ title, image, loading }: { title: string; image: Uploaded
   );
 }
 
-function RoomReferenceUploader({
-  images,
-  onFiles
-}: {
-  images: UploadedImage[];
-  onFiles: (files: File[]) => void;
-}) {
-  const remaining = 5 - images.length;
-  return (
-    <section className={styles.referenceUploader}>
-      <div>
-        <strong>补充卧室角度</strong>
-        <span>可选，最多 5 张。建议上传左右侧、斜角或窗边视角。</span>
-      </div>
-      {images.length > 0 && (
-        <div className={styles.referenceThumbs}>
-          {images.map((image) => <img key={`${image.fileName}-${image.size}`} src={image.dataUrl} alt="卧室补充角度" />)}
-        </div>
-      )}
-      {remaining > 0 && (
-        <label className={styles.referenceUploadButton}>
-          <ImagePlus size={17} />
-          添加补充照片（还可添加 {remaining} 张）
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(event) => onFiles(Array.from(event.target.files ?? []).slice(0, remaining))}
-          />
-        </label>
-      )}
-    </section>
-  );
-}
-
 function ReviewStep({
   analysis,
   beddingForegroundImage,
@@ -1080,7 +1056,7 @@ function ReviewStep({
                 </div>
                 <div className={styles.planGrid}>
                   <PlanField label="摆放位置" value={analysis.placementPlan.placement} onChange={(value) => onPlanChange("placement", value)} />
-                  <PlanField label="床头朝向" value={analysis.placementPlan.facing} onChange={(value) => onPlanChange("facing", value)} />
+                  <PlanField label="床具朝向" value={analysis.placementPlan.facing} onChange={(value) => onPlanChange("facing", value)} />
                   <PlanField label="尺寸与比例" value={analysis.placementPlan.scale} onChange={(value) => onPlanChange("scale", value)} />
                   <PlanListField label="保留内容" value={analysis.placementPlan.preserve} onChange={(value) => onPlanChange("preserve", value)} />
                   <PlanListField label="移除或替换" value={analysis.placementPlan.remove} onChange={(value) => onPlanChange("remove", value)} />
@@ -1173,7 +1149,7 @@ function ReviewStep({
               <div className={styles.optionBlock}>
                 <div className={styles.optionHeading}>
                   <strong>人体模特</strong>
-                  <span>自然坐在床边或倚坐在床上</span>
+                  <span>自然坐在目标床具上</span>
                 </div>
                 <label className={styles.toggleControl}>
                   <input type="checkbox" checked={settings.addHumanModel} onChange={(event) => onSettingsChange({ ...settings, addHumanModel: event.target.checked })} />
@@ -1207,7 +1183,7 @@ function ReviewStep({
 
               <label className={styles.freeformField}>
                 补充合成要求
-                <textarea value={settings.notes} onChange={(event) => onSettingsChange({ ...settings, notes: event.target.value })} placeholder="例如：移除原有旧床；保留床头柜和衣柜；床头靠实墙；床尾留出通道" />
+                <textarea value={settings.notes} onChange={(event) => onSettingsChange({ ...settings, notes: event.target.value })} placeholder="例如：移除原有黑色床具；保留茶几和地毯；新床具朝向幕布；右侧留出通道" />
               </label>
             </div>
 
@@ -1241,6 +1217,7 @@ function ReviewStep({
 
 function ResultStep({
   roomImage,
+  beddingImage,
   useVirtualRoom,
   result,
   results,
@@ -1250,11 +1227,13 @@ function ResultStep({
   onSelectResult,
   onCompareChange,
   onBack,
+  onBackToBedding,
   onRegenerate,
   onCorrect,
   isGenerating
 }: {
   roomImage: UploadedImage | null;
+  beddingImage: UploadedImage | null;
   useVirtualRoom: boolean;
   result: GeneratedImageResult;
   results: GeneratedImageResult[];
@@ -1264,12 +1243,23 @@ function ResultStep({
   onSelectResult: (index: number) => void;
   onCompareChange: (value: number) => void;
   onBack: () => void;
+  onBackToBedding: () => void;
   onRegenerate: () => void;
   onCorrect: () => void;
   isGenerating: boolean;
 }) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [viewerImage, setViewerImage] = useState<"result" | "original">("result");
+  const [viewerImage, setViewerImage] = useState<"result" | "original" | "product">("result");
+  const viewerImageSrc = viewerImage === "product" && beddingImage
+    ? beddingImage.dataUrl
+    : viewerImage === "original" && roomImage
+      ? roomImage.dataUrl
+      : result.imageUrl;
+  const viewerImageAlt = viewerImage === "product" && beddingImage
+    ? "床具产品图"
+    : viewerImage === "original" && roomImage
+      ? "原始卧室图"
+      : "生成效果图";
 
   return (
     <section className={styles.resultPage}>
@@ -1289,6 +1279,10 @@ function ResultStep({
         <button className={styles.secondaryButton} onClick={onBack}>
           <ChevronLeft size={16} />
           返回调整
+        </button>
+        <button className={styles.secondaryButton} onClick={onBackToBedding}>
+          <UploadCloud size={16} />
+          重新上传床具
         </button>
         <a className={styles.secondaryButton} href={result.imageUrl} download={`${result.title}.jpg`}>
           <Download size={16} />
@@ -1317,10 +1311,11 @@ function ResultStep({
             <div>
               <button className={viewerImage === "result" ? styles.selectedChoice : ""} onClick={() => setViewerImage("result")}>效果图</button>
               {!useVirtualRoom && roomImage && <button className={viewerImage === "original" ? styles.selectedChoice : ""} onClick={() => setViewerImage("original")}>原图</button>}
+              {beddingImage && <button className={viewerImage === "product" ? styles.selectedChoice : ""} onClick={() => setViewerImage("product")}>产品图</button>}
             </div>
             <button className={styles.viewerClose} onClick={() => setIsViewerOpen(false)} aria-label="关闭查看"><X size={22} /></button>
           </div>
-          <img src={viewerImage === "result" || !roomImage ? result.imageUrl : roomImage.dataUrl} alt={viewerImage === "result" || !roomImage ? "生成效果图" : "原始卧室图"} />
+          <img src={viewerImageSrc} alt={viewerImageAlt} />
         </div>
       )}
     </section>
@@ -1353,7 +1348,3 @@ function PlanListField({ label, value, onChange }: { label: string; value: strin
     </label>
   );
 }
-
-
-
-
