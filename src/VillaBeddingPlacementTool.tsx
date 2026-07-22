@@ -449,17 +449,6 @@ export function VillaBeddingPlacementTool() {
       return;
     }
 
-    const isHighLoadRequest = settings.clarity === "4K" && (settings.perspectives.length > 1 || settings.addHumanModel);
-    if (isHighLoadRequest) {
-      const message = "4K 多视角或人体模特生成耗时过长，容易触发主站网关 502。请先改用 1K/2K，或只保留一个视角后再生成。";
-      setError(message);
-      setGuidedStep("review");
-      setReviewSubstep("settings");
-      setStatus(message);
-      addChatMessage({ role: "assistant", text: message });
-      return;
-    }
-
     setError("");
     setIsGenerating(true);
     setGuidedStep("generating");
