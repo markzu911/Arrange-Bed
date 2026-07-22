@@ -792,7 +792,7 @@ function setCors(res: ServerResponse) {
 function getRequestPath(req: IncomingMessage): string {
   const host = req.headers.host || "localhost";
   const url = new URL(req.url || "/", `http://${host}`);
-  if (url.pathname === "/api/proxy") {
+  if (url.pathname === "/api/proxy" || url.pathname === "/api/proxy.ts") {
     const rewrittenPath = url.searchParams.get("path");
     if (rewrittenPath) {
       return `/api/${rewrittenPath.replace(/^\/+/, "")}`;
@@ -804,7 +804,7 @@ function getRequestPath(req: IncomingMessage): string {
 function getQuery(req: IncomingMessage): string {
   const host = req.headers.host || "localhost";
   const url = new URL(req.url || "/", `http://${host}`);
-  if (url.pathname === "/api/proxy") {
+  if (url.pathname === "/api/proxy" || url.pathname === "/api/proxy.ts") {
     url.searchParams.delete("path");
   }
   return url.search;
