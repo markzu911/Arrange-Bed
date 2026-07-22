@@ -132,6 +132,23 @@ export async function generatePlacementImages(
   extraPrompt: string[]
 ): Promise<GeminiImageResponse["images"]> {
   const requestedPerspectives = (["wide", "medium", "close"] as const).filter((perspective) => settings.perspectives.includes(perspective));
+  if (requestedPerspectives.length > 1) {
+    const images: GeminiImageResponse["images"] = [];
+    for (const perspective of requestedPerspectives) {
+      images.push(...await generatePlacementImages(
+        roomImage,
+        beddingImage,
+        productReferenceImage,
+        roomReferenceImages,
+        analysis,
+        { ...settings, perspectives: [perspective] },
+        extraContext,
+        extraPrompt
+      ));
+    }
+    return images;
+  }
+
   const masterSettings: PlacementSettings = { ...settings, perspectives: requestedPerspectives };
   const perspectivePrompts = Object.fromEntries([
     ["wide", buildGenerationPrompt(analysis, masterSettings, "wide", extraContext, extraPrompt)],
@@ -217,6 +234,20 @@ export async function generateVirtualRoomImages(
   extraPrompt: string[]
 ): Promise<GeminiImageResponse["images"]> {
   const requestedPerspectives = (["wide", "medium", "close"] as const).filter((perspective) => settings.perspectives.includes(perspective));
+  if (requestedPerspectives.length > 1) {
+    const images: GeminiImageResponse["images"] = [];
+    for (const perspective of requestedPerspectives) {
+      images.push(...await generateVirtualRoomImages(
+        beddingImage,
+        analysis,
+        { ...settings, perspectives: [perspective] },
+        extraContext,
+        extraPrompt
+      ));
+    }
+    return images;
+  }
+
   const masterSettings: PlacementSettings = { ...settings, perspectives: requestedPerspectives };
   const perspectivePrompts = Object.fromEntries(requestedPerspectives.map((perspective) => [
     perspective,
