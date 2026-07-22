@@ -54,12 +54,12 @@ export function mergeSaasInit(context: PlatformContext, payload: SaasInitPayload
     toolId: cleanParam(payload.toolId) || context.toolId,
     context: cleanParam(payload.context) || context.context,
     prompt: Array.isArray(payload.prompt) ? payload.prompt.filter(Boolean) : context.prompt,
-    launchUrl: cleanParam(payload.launchUrl) || context.launchUrl,
-    verifyUrl: cleanParam(payload.verifyUrl) || context.verifyUrl,
-    consumeUrl: cleanParam(payload.consumeUrl) || context.consumeUrl,
-    uploadTokenUrl: cleanParam(payload.uploadTokenUrl) || context.uploadTokenUrl,
-    uploadCommitUrl: cleanParam(payload.uploadCommitUrl) || context.uploadCommitUrl,
-    geminiUrl: cleanParam(payload.geminiUrl) || context.geminiUrl
+    launchUrl: normalizeProxyEndpoint(payload.launchUrl, context.launchUrl),
+    verifyUrl: normalizeProxyEndpoint(payload.verifyUrl, context.verifyUrl),
+    consumeUrl: normalizeProxyEndpoint(payload.consumeUrl, context.consumeUrl),
+    uploadTokenUrl: normalizeProxyEndpoint(payload.uploadTokenUrl, context.uploadTokenUrl),
+    uploadCommitUrl: normalizeProxyEndpoint(payload.uploadCommitUrl, context.uploadCommitUrl),
+    geminiUrl: normalizeGeminiEndpoint(payload.geminiUrl, context.geminiUrl)
   };
 }
 
@@ -203,4 +203,35 @@ function cleanParam(value?: string | null): string {
 
 function isDemoContext(context: PlatformContext): boolean {
   return context.userId === "demo-user" && context.toolId === TOOL_ID;
+}
+
+function normalizeProxyEndpoint(value: string | undefined | null, fallback: string): string {
+  const endpoint = cleanParam(value);
+  if (!endpoint) return fallback;
+
+  try {
+    const url = new URL(endpoint, window.location.origin);
+    if (url.pathname.startsWith("/api/tool/") || url.pathname.startsWith("/api/upload/")) {
+      return `${url.pathname}${url.search}`;
+    }
+  } catch {
+    return endpoint.startsWith("/api/") ? endpoint : fallback;
+  }
+
+  return endpoint;
+}
+
+function normalizeGeminiEndpoint(value: string | undefined | null, fallback: string): string {
+  const endpoint = cleanParam(value);
+  if (!endpoint) return fallback;
+
+  try {
+    const url = new URL(endpoint, window.location.origin);
+    if (url.pathname === "/api/gemini" && url.origin === window.location.origin) {
+      return `${url.pathname}${url.search}`;
+    }
+    return url.toString();
+  } catch {
+    return endpoint.startsWith("/api/") ? endpoint : fallback;
+  }
 }
