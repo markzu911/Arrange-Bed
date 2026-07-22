@@ -22,6 +22,7 @@ import { compressDataUrlToBlob, compressImage, GEMINI_IMAGE_TARGET_BYTES } from 
 import {
   consumeIntegral,
   createInitialPlatformContext,
+  isInsufficientIntegralError,
   launchTool,
   mergeSaasInit,
   persistResultImage,
@@ -109,7 +110,7 @@ function createVirtualRoomAnalysis(styleLabel: string): SceneAnalysis {
       preserve: [`整体装修风格保持 ${styleLabel}`, "保留目标床具的产品特征"],
       remove: ["无需移除用户卧室物品"],
       avoid: ["不要生成展厅白底", "不要让软装遮挡床具主体", "不要把床具替换成相似款"],
-      rationale: ["用户选择跳过上传卧室，直接生成虚拟卧室效果图", "该方案不消耗积分"],
+      rationale: ["用户选择跳过上传卧室，直接生成虚拟卧室效果图", "生成前会校验积分，成功生成后扣除积分"],
       candidates: [],
       selectedCandidateId: ""
     }
@@ -150,7 +151,7 @@ export function VillaBeddingPlacementTool() {
   const [results, setResults] = useState<GeneratedImageResult[]>([]);
   const [selectedResult, setSelectedResult] = useState(0);
   const [compareValue, setCompareValue] = useState(50);
-  const [integral, setIntegral] = useState(TOOL_COST * 9);
+  const [integral, setIntegral] = useState(0);
   const [toolCost, setToolCost] = useState(TOOL_COST);
   const [status, setStatus] = useState("准备就绪，请上传卧室照片开始摆放");
   const [error, setError] = useState("");
@@ -180,6 +181,8 @@ export function VillaBeddingPlacementTool() {
   useEffect(() => {
     let active = true;
     if (isStandaloneTrial) {
+      setIntegral(TOOL_COST * 9);
+      setToolCost(TOOL_COST);
       setIsLaunching(false);
       return () => {
         active = false;
@@ -357,6 +360,14 @@ export function VillaBeddingPlacementTool() {
       setStatus("卧室解析完成，请上传床具照片");
       addChatMessage({ role: "assistant", text: "卧室解析完成。现在请上传要摆放的床具照片，建议选择正面或 45 度角、主体完整的图片。" });
     } catch (err) {
+      if (isInsufficientIntegralError(err)) {
+        const message = userFacingError(err, "积分不足，无法开始图片分析");
+        setError(message);
+        setStatus(message);
+        setGuidedStep("room");
+        addChatMessage({ role: "assistant", text: `${message}。请补充积分后再开始图片分析。` });
+        return;
+      }
       setError(userFacingError(err, "卧室解析失败"));
       setStatus("卧室解析失败，您仍可继续上传床具后重试");
       setGuidedStep("bedding");
@@ -379,7 +390,7 @@ export function VillaBeddingPlacementTool() {
         setReviewSubstep("plan");
         setGuidedStep("review");
         setStatus("虚拟卧室方案已准备好，请确认风格、视角和比例");
-        addChatMessage({ role: "assistant", text: `已准备 ${styleLabel} 虚拟卧室方案。该模式不消耗积分，确认视角和比例后即可生成。` });
+        addChatMessage({ role: "assistant", text: `已准备 ${styleLabel} 虚拟卧室方案。确认视角和比例后即可生成，生成前会校验积分。` });
       } catch (err) {
         setError(userFacingError(err, "虚拟卧室方案准备失败"));
         setStatus("");
@@ -413,6 +424,15 @@ export function VillaBeddingPlacementTool() {
       setStatus("床具前景和干净场景已锁定，请确认摆放方案");
       addChatMessage({ role: "assistant", text: `已完成床具前景提取和原场景清场，后续摆放将只在这张干净底图上合成。我的建议是：${nextAnalysis.placementAdvice}。请在下方确认方案，或直接告诉我您想调整的位置和视角。` });
     } catch (err) {
+      if (isInsufficientIntegralError(err)) {
+        const message = userFacingError(err, "积分不足，无法分析床具");
+        setError(message);
+        setStatus(message);
+        setBeddingForegroundImage(null);
+        setClearedRoomImage(null);
+        addChatMessage({ role: "assistant", text: `${message}。请补充积分后再继续图片分析。` });
+        return;
+      }
       setError(userFacingError(err, "床具解析失败"));
       setBeddingForegroundImage(null);
       setClearedRoomImage(null);
@@ -435,7 +455,7 @@ export function VillaBeddingPlacementTool() {
     setStatus("正在生成摆放效果图...");
     addChatMessage({ role: "assistant", text: useVirtualRoom ? "方案已确认，正在生成虚拟卧室效果图。我会保留床具产品特征，并匹配装修风格、光照和空间尺度。" : "方案已确认，正在生成摆放效果图。我会匹配床具尺度、卧室透视、光照和地面阴影。" });
     try {
-      if (!useVirtualRoom && !isStandaloneTrial) {
+      if (!isStandaloneTrial) {
         await verifyIntegral(platform);
       }
       const generationSettings = correctionPrompt
@@ -452,13 +472,13 @@ export function VillaBeddingPlacementTool() {
         perspective: item.perspective,
         title: item.title,
         imageUrl: item.imageUrl,
-        uploadStatus: useVirtualRoom || isStandaloneTrial ? "skipped" : "pending"
+        uploadStatus: isStandaloneTrial ? "skipped" : "pending"
       }));
 
-      if (!useVirtualRoom && !isStandaloneTrial) {
+      if (!isStandaloneTrial) {
         const currentIntegral = await consumeIntegral(platform);
         if (typeof currentIntegral === "number") setIntegral(currentIntegral);
-      } else if (!useVirtualRoom) {
+      } else {
         setIntegral((value) => Math.max(0, value - toolCost));
       }
 
@@ -468,7 +488,7 @@ export function VillaBeddingPlacementTool() {
       setStatus(`已生成 ${generated.length} 个视角结果`);
       addChatMessage({ role: "assistant", text: `摆放效果已经生成，共 ${generated.length} 个视角。您可以在下方切换视角、拖动对比滑块或下载图片。` });
 
-      if (!useVirtualRoom && !isStandaloneTrial) {
+      if (!isStandaloneTrial) {
         await uploadGeneratedResults(generated);
       }
 
@@ -496,6 +516,15 @@ export function VillaBeddingPlacementTool() {
         }
       }
     } catch (err) {
+      if (isInsufficientIntegralError(err)) {
+        const message = userFacingError(err, "积分不足，无法生成效果图");
+        setError(message);
+        setGuidedStep("review");
+        setReviewSubstep("settings");
+        setStatus(message);
+        addChatMessage({ role: "assistant", text: `${message}。本次没有开始生成，也不会扣除积分。` });
+        return;
+      }
       setError(userFacingError(err, "生成失败"));
       setGuidedStep("review");
       setReviewSubstep("settings");

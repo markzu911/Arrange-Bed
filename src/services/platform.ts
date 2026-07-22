@@ -19,6 +19,17 @@ export interface UploadCommitResult {
   savedToRecords?: boolean;
 }
 
+export class InsufficientIntegralError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InsufficientIntegralError";
+  }
+}
+
+export function isInsufficientIntegralError(error: unknown): error is InsufficientIntegralError {
+  return error instanceof InsufficientIntegralError;
+}
+
 export function createInitialPlatformContext(): PlatformContext {
   const params = new URLSearchParams(window.location.search);
   return {
@@ -59,6 +70,10 @@ export async function launchTool(context: PlatformContext): Promise<LaunchState>
     return response.data;
   }
 
+  if (!isDemoContext(context)) {
+    throw new Error(response.message || "获取用户积分信息失败");
+  }
+
   return {
     user: { name: "当前用户", enterprise: "当前企业", integral: 90 },
     tool: { name: TOOL_NAME, integral: TOOL_COST }
@@ -75,7 +90,7 @@ export async function verifyIntegral(context: PlatformContext): Promise<void> {
     return;
   }
 
-  throw new Error(response.message || "积分不足，无法继续执行");
+  throw new InsufficientIntegralError(response.message || "积分不足，无法继续执行");
 }
 
 export async function consumeIntegral(context: PlatformContext): Promise<number | undefined> {
@@ -165,7 +180,15 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     throw new Error(`接口返回异常：${response.status}`);
   }
 
-  return response.json() as Promise<T>;
+  const data = await response.json() as T;
+  if (!response.ok) {
+    const message = typeof data === "object" && data && "message" in data
+      ? String((data as { message?: unknown }).message || "")
+      : "";
+    throw new Error(message || `接口请求失败：${response.status}`);
+  }
+
+  return data;
 }
 
 function cleanParam(value?: string | null): string {
@@ -173,4 +196,8 @@ function cleanParam(value?: string | null): string {
     return "";
   }
   return value;
+}
+
+function isDemoContext(context: PlatformContext): boolean {
+  return context.userId === "demo-user" && context.toolId === TOOL_ID;
 }
