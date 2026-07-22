@@ -228,20 +228,6 @@ async function handleGemini(req: JsonRequest, res: ServerResponse) {
 
 async function generateImagesWithInteractions(body: GeminiRequestBody, apiKey: string, model: string) {
   const requested = body.settings?.perspectives?.length ? body.settings.perspectives : ["medium"];
-  if (requested.length === 1) {
-    const perspective = requested[0];
-    const { response, raw } = await requestImageWithFallback(body, apiKey, model, perspective);
-    if (!response.ok) throw toGeminiUpstreamError(response.status, raw, "Gemini 图片生成失败");
-    const data = JSON.parse(raw);
-    const image = extractInteractionImage(data) || extractGeneratedContentImage(data);
-    if (!image) throw new Error("Gemini 未返回可用的摆放图片");
-    return [{
-      perspective,
-      title: getPerspectiveTitle(perspective),
-      imageUrl: `data:${image.mimeType};base64,${image.data}`
-    }];
-  }
-
   const { response, raw, model: selectedModel, api: selectedApi } = await requestImageWithFallback(body, apiKey, model, "wide");
   if (!response.ok) throw toGeminiUpstreamError(response.status, raw, "Gemini 图片生成失败");
 
@@ -269,12 +255,6 @@ async function generateImagesWithInteractions(body: GeminiRequestBody, apiKey: s
   }));
   results.sort((left, right) => requested.indexOf(left.perspective) - requested.indexOf(right.perspective));
   return results;
-}
-
-function getPerspectiveTitle(perspective: string) {
-  if (perspective === "wide") return "远景（卧室全景）";
-  if (perspective === "close") return "近景（床具细节）";
-  return "中近景（床区核心）";
 }
 
 async function requestImageWithFallback(body: GeminiRequestBody, apiKey: string, model: string, perspective: string) {
