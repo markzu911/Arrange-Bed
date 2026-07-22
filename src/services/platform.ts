@@ -11,7 +11,6 @@ export interface PlatformContext {
   consumeUrl: string;
   uploadTokenUrl: string;
   uploadCommitUrl: string;
-  geminiUrl: string;
 }
 
 export interface UploadCommitResult {
@@ -42,8 +41,7 @@ export function createInitialPlatformContext(): PlatformContext {
     verifyUrl: "/api/tool/verify",
     consumeUrl: "/api/tool/consume",
     uploadTokenUrl: "/api/upload/direct-token",
-    uploadCommitUrl: "/api/upload/commit",
-    geminiUrl: cleanParam(params.get("geminiUrl")) || "/api/gemini"
+    uploadCommitUrl: "/api/upload/commit"
   };
 }
 
@@ -58,8 +56,7 @@ export function mergeSaasInit(context: PlatformContext, payload: SaasInitPayload
     verifyUrl: normalizeProxyEndpoint(payload.verifyUrl, context.verifyUrl),
     consumeUrl: normalizeProxyEndpoint(payload.consumeUrl, context.consumeUrl),
     uploadTokenUrl: normalizeProxyEndpoint(payload.uploadTokenUrl, context.uploadTokenUrl),
-    uploadCommitUrl: normalizeProxyEndpoint(payload.uploadCommitUrl, context.uploadCommitUrl),
-    geminiUrl: normalizeGeminiEndpoint(payload.geminiUrl, context.geminiUrl)
+    uploadCommitUrl: normalizeProxyEndpoint(payload.uploadCommitUrl, context.uploadCommitUrl)
   };
 }
 
@@ -219,19 +216,4 @@ function normalizeProxyEndpoint(value: string | undefined | null, fallback: stri
   }
 
   return endpoint;
-}
-
-function normalizeGeminiEndpoint(value: string | undefined | null, fallback: string): string {
-  const endpoint = cleanParam(value);
-  if (!endpoint) return fallback;
-
-  try {
-    const url = new URL(endpoint, window.location.origin);
-    if (url.pathname === "/api/gemini" && url.origin === window.location.origin) {
-      return `${url.pathname}${url.search}`;
-    }
-    return url.toString();
-  } catch {
-    return endpoint.startsWith("/api/") ? endpoint : fallback;
-  }
 }
