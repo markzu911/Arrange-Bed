@@ -17,7 +17,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { defaultSettings, perspectiveLabels, TOOL_COST, TOOL_NAME, virtualRoomStyleLabels } from "./constants";
 import styles from "./VillaBeddingPlacementTool.module.css";
-import { analyzeScene, checkGeneratedPlacement, eraseExistingBeds, extractBeddingForeground, generatePlacementImages, generateVirtualRoomImages } from "./services/gemini";
+import { analyzeScene, checkGeneratedPlacement, eraseExistingBeds, extractBeddingForeground, generatePlacementImages, generateVirtualRoomImages, setGeminiEndpoint } from "./services/gemini";
 import { compressDataUrlToBlob, compressImage, GEMINI_IMAGE_TARGET_BYTES } from "./services/image";
 import {
   consumeIntegral,
@@ -177,6 +177,10 @@ export function VillaBeddingPlacementTool() {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  useEffect(() => {
+    setGeminiEndpoint(platform.geminiUrl);
+  }, [platform.geminiUrl]);
 
   useEffect(() => {
     let active = true;

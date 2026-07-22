@@ -14,6 +14,12 @@ import { buildAnalysisPrompt, buildCameraVariationPrompt, buildGenerationPrompt,
 import { assertDistinctCameraViews, compressDataUrlToImage, removeGreenScreen } from "./image";
 import { resolvePlacementPlan } from "./placement";
 
+let geminiEndpoint = "/api/gemini";
+
+export function setGeminiEndpoint(url: string) {
+  geminiEndpoint = cleanEndpoint(url) || "/api/gemini";
+}
+
 export async function analyzeScene(
   roomImage: UploadedImage,
   beddingImage: UploadedImage | null,
@@ -302,7 +308,7 @@ async function postGemini<T>(payload: GeminiGenerateRequest): Promise<T> {
   if (bodySize > 3.5 * 1024 * 1024) {
     throw new Error("请求图片体积仍然过大，可能被服务端拒绝。请减少补充角度图片，或上传分辨率更低的卧室/床具图后重试。");
   }
-  const response = await fetch("/api/gemini", {
+  const response = await fetch(geminiEndpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body
@@ -310,6 +316,9 @@ async function postGemini<T>(payload: GeminiGenerateRequest): Promise<T> {
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) {
+    if (response.status === 404 || response.status === 405) {
+      throw new Error(`Gemini 接口地址不可用：${geminiEndpoint} 返回 ${response.status}，请确认主站传入的是 Vercel 工具 API 地址`);
+    }
     throw new Error(`Gemini 接口返回异常：${response.status}`);
   }
 
@@ -318,6 +327,14 @@ async function postGemini<T>(payload: GeminiGenerateRequest): Promise<T> {
     throw new Error(data.message || "AI 处理失败");
   }
   return data as T;
+}
+
+function cleanEndpoint(value?: string): string {
+  const trimmed = value?.trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") {
+    return "";
+  }
+  return trimmed;
 }
 
 

@@ -21,6 +21,7 @@ export interface SaasInitPayload {
   consumeUrl?: string;
   uploadTokenUrl?: string;
   uploadCommitUrl?: string;
+  geminiUrl?: string;
 }
 
 export interface ToolUser {

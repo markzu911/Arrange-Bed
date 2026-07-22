@@ -11,6 +11,7 @@ export interface PlatformContext {
   consumeUrl: string;
   uploadTokenUrl: string;
   uploadCommitUrl: string;
+  geminiUrl: string;
 }
 
 export interface UploadCommitResult {
@@ -41,7 +42,8 @@ export function createInitialPlatformContext(): PlatformContext {
     verifyUrl: "/api/tool/verify",
     consumeUrl: "/api/tool/consume",
     uploadTokenUrl: "/api/upload/direct-token",
-    uploadCommitUrl: "/api/upload/commit"
+    uploadCommitUrl: "/api/upload/commit",
+    geminiUrl: cleanParam(params.get("geminiUrl")) || "/api/gemini"
   };
 }
 
@@ -56,7 +58,8 @@ export function mergeSaasInit(context: PlatformContext, payload: SaasInitPayload
     verifyUrl: cleanParam(payload.verifyUrl) || context.verifyUrl,
     consumeUrl: cleanParam(payload.consumeUrl) || context.consumeUrl,
     uploadTokenUrl: cleanParam(payload.uploadTokenUrl) || context.uploadTokenUrl,
-    uploadCommitUrl: cleanParam(payload.uploadCommitUrl) || context.uploadCommitUrl
+    uploadCommitUrl: cleanParam(payload.uploadCommitUrl) || context.uploadCommitUrl,
+    geminiUrl: cleanParam(payload.geminiUrl) || context.geminiUrl
   };
 }
 
