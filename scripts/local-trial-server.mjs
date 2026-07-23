@@ -118,6 +118,11 @@ async function handleGemini(req, res) {
     return;
   }
 
+  if (provider === "seedream" && process.env.LOCAL_SEEDREAM_ONLY !== "false") {
+    sendJson(res, 200, createSeedreamOnlyLocalResponse(body));
+    return;
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -609,6 +614,42 @@ function createMockResponse(body) {
       imageUrl: createMockSvgDataUrl(perspective, body.settings?.ratio || "16:9")
     }))
   };
+}
+
+function createSeedreamOnlyLocalResponse(body) {
+  if (body.mode === "analyze" || body.mode === "quality") {
+    return createMockResponse(body);
+  }
+
+  if (body.mode === "erase") {
+    const image = body.roomImage;
+    if (image?.base64) {
+      return {
+        success: true,
+        images: [{
+          perspective: "wide",
+          title: "干净场景",
+          imageUrl: `data:${image.mimeType || "image/jpeg"};base64,${image.base64}`
+        }]
+      };
+    }
+  }
+
+  if (body.mode === "cutout") {
+    const image = getBeddingImage(body);
+    if (image?.base64) {
+      return {
+        success: true,
+        images: [{
+          perspective: "wide",
+          title: "床具前景",
+          imageUrl: `data:${image.mimeType || "image/jpeg"};base64,${image.base64}`
+        }]
+      };
+    }
+  }
+
+  return createMockResponse(body);
 }
 
 function parseAnalysis(data) {
