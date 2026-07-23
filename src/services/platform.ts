@@ -115,7 +115,7 @@ export async function persistResultImage(
     success: boolean;
     method: string;
     objectKey: string;
-    uploadUrl: string;
+    uploadUrl?: string;
     proxyUploadUrl?: string;
     headers?: Record<string, string>;
     message?: string;
@@ -132,7 +132,8 @@ export async function persistResultImage(
     throw new Error(token.message || "获取结果图上传地址失败");
   }
 
-  const uploadResponse = await fetch(token.proxyUploadUrl || token.uploadUrl || "", {
+  const uploadUrl = resolveProxyUploadUrl(token.proxyUploadUrl || token.uploadUrl);
+  const uploadResponse = await fetch(uploadUrl, {
     method: token.method || "PUT",
     headers: token.headers || { "Content-Type": blob.type || "image/png" },
     body: blob
@@ -216,4 +217,24 @@ function normalizeProxyEndpoint(value: string | undefined | null, fallback: stri
   }
 
   return endpoint;
+}
+
+function resolveProxyUploadUrl(value?: string): string {
+  const endpoint = cleanParam(value);
+  if (!endpoint) {
+    throw new Error("主站未返回结果图代理上传地址");
+  }
+
+  try {
+    const url = new URL(endpoint, window.location.origin);
+    if (url.pathname.startsWith("/api/upload/") && url.origin === window.location.origin) {
+      return `${url.pathname}${url.search}`;
+    }
+  } catch {
+    if (endpoint.startsWith("/api/upload/")) {
+      return endpoint;
+    }
+  }
+
+  throw new Error("主站返回的是 OSS 直传地址，请改为返回 /api/upload/proxy-put 代理上传地址");
 }
