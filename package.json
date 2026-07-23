@@ -7,6 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "dev:vercel": "vercel dev --listen 5174",
     "trial": "npm run build && node scripts/local-trial-server.mjs",
+    "test:seedream": "node scripts/test-seedream.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
