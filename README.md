@@ -35,6 +35,20 @@ GEMINI_IMAGE_MODEL_3=gemini-3.1-flash-image
 
 不要把 `GEMINI_API_KEY` 注入 Vite 前端变量，也不要使用 `VITE_GEMINI_API_KEY`。
 
+### Seedream Preview 测试分支
+
+`codex/seedream-5-pro-test` 分支可在 Vercel Preview 中只替换最终效果图生成模型，分析、清场、抠图和质检仍沿用 Gemini。Preview 环境变量示例：
+
+```text
+IMAGE_PROVIDER=seedream
+ARK_API_KEY=你的火山方舟 Key
+SEEDREAM_MODEL=doubao-seedream-5-0-pro-260628
+SEEDREAM_API_BASE=https://ark.cn-beijing.volces.com/api/v3
+SEEDREAM_WATERMARK=false
+```
+
+不要把 `ARK_API_KEY` 注入 Vite 前端变量，也不要提交到 GitHub。
+
 ## 主平台嵌入
 
 主平台后续可以 iframe 嵌入工具 URL，并通过 `postMessage` 传入初始化参数：

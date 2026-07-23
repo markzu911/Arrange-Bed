@@ -108,6 +108,23 @@ function describeError(error: unknown) {
 
 async function handleGemini(req: JsonRequest, res: ServerResponse) {
   const body = (await readJsonBody<GeminiRequestBody>(req)) || {};
+  const provider = String(process.env.IMAGE_PROVIDER || "gemini").toLowerCase();
+
+  if (body.mode === "generate" && provider === "seedream") {
+    const apiKey = process.env.ARK_API_KEY || process.env.SEEDREAM_API_KEY;
+    if (!apiKey) {
+      sendJson(res, 500, {
+        success: false,
+        message: "未配置 ARK_API_KEY，当前无法调用 Seedream。请在 Vercel Preview 环境变量中配置后重新部署。"
+      });
+      return;
+    }
+
+    const images = await generateSeedreamImages(body, apiKey);
+    sendJson(res, 200, { success: true, images });
+    return;
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -255,6 +272,140 @@ async function generateImagesWithInteractions(body: GeminiRequestBody, apiKey: s
   }));
   results.sort((left, right) => requested.indexOf(left.perspective) - requested.indexOf(right.perspective));
   return results;
+}
+
+async function generateSeedreamImages(body: GeminiRequestBody, apiKey: string) {
+  const requested = body.settings?.perspectives?.length ? body.settings.perspectives : ["medium"];
+  const model = process.env.SEEDREAM_MODEL || "doubao-seedream-5-0-pro-260628";
+  const size = normalizeSeedreamSize(body.settings?.clarity);
+  const masterPrompt = body.perspectivePrompts?.wide || body.systemPrompt || "";
+  const masterImages = buildSeedreamImageInputs(body);
+  const masterImage = await requestSeedreamImage(apiKey, model, masterPrompt, masterImages, size, "wide");
+  const results = new Map<string, { perspective: string; title: string; imageUrl: string }>();
+
+  if (requested.includes("wide")) {
+    results.set("wide", { perspective: "wide", title: "远景（卧室全景）", imageUrl: masterImage });
+  }
+
+  await Promise.all(requested.filter((item) => item !== "wide").map(async (perspective) => {
+    const prompt = body.perspectivePrompts?.[perspective] || body.systemPrompt || "";
+    const imageUrl = await requestSeedreamImage(
+      apiKey,
+      model,
+      prompt,
+      [
+        masterImage,
+        ...buildSeedreamProductInputs(body)
+      ],
+      size,
+      perspective
+    );
+    results.set(perspective, {
+      perspective,
+      title: perspective === "medium" ? "中近景（床区核心）" : "近景（床具细节）",
+      imageUrl
+    });
+  }));
+
+  return requested.map((perspective) => results.get(perspective)).filter(Boolean);
+}
+
+async function requestSeedreamImage(apiKey: string, model: string, prompt: string, images: string[], size: string, perspective: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 110_000);
+  const response = await fetchWithDiagnostics(
+    `seedream:${model}:${perspective}`,
+    `${process.env.SEEDREAM_API_BASE || "https://ark.cn-beijing.volces.com/api/v3"}/images/generations`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model,
+        prompt,
+        ...(images.length ? { image: images.length === 1 ? images[0] : images } : {}),
+        response_format: "url",
+        size,
+        stream: false,
+        watermark: process.env.SEEDREAM_WATERMARK === "true"
+      })
+    }
+  ).finally(() => clearTimeout(timeout));
+  const raw = await response.text();
+  if (!response.ok) {
+    throw new GeminiUpstreamError(response.status, parseSeedreamError(raw) || "Seedream 图片生成失败");
+  }
+
+  const imageUrl = extractSeedreamImageUrl(JSON.parse(raw));
+  if (!imageUrl) {
+    throw new Error("Seedream 未返回可用图片");
+  }
+
+  return downloadImageAsDataUrl(imageUrl);
+}
+
+function buildSeedreamImageInputs(body: GeminiRequestBody): string[] {
+  return [
+    imageToDataUrl(body.roomImage),
+    ...(body.roomReferenceImages || []).map(imageToDataUrl),
+    imageToDataUrl(getBeddingImage(body)),
+    imageToDataUrl(body.productReferenceImage)
+  ].filter((item): item is string => Boolean(item));
+}
+
+function buildSeedreamProductInputs(body: GeminiRequestBody): string[] {
+  return [
+    imageToDataUrl(getBeddingImage(body)),
+    imageToDataUrl(body.productReferenceImage)
+  ].filter((item): item is string => Boolean(item));
+}
+
+function imageToDataUrl(image?: { base64: string; mimeType: string }): string | undefined {
+  if (!image?.base64) return undefined;
+  return `data:${image.mimeType || "image/jpeg"};base64,${image.base64}`;
+}
+
+function normalizeSeedreamSize(clarity?: string): string {
+  if (process.env.SEEDREAM_SIZE) return process.env.SEEDREAM_SIZE;
+  return clarity === "1K" ? "1K" : "2K";
+}
+
+function extractSeedreamImageUrl(data: unknown): string {
+  const items = asRecord(data).data;
+  if (Array.isArray(items)) {
+    for (const item of items) {
+      const record = asRecord(item);
+      if (typeof record.url === "string") return record.url;
+      if (typeof record.b64_json === "string") return `data:image/png;base64,${record.b64_json}`;
+    }
+  }
+  return "";
+}
+
+async function downloadImageAsDataUrl(url: string): Promise<string> {
+  if (url.startsWith("data:image/")) return url;
+  const response = await fetchWithDiagnostics("seedream:download", url, { method: "GET" });
+  if (!response.ok) {
+    throw new GeminiUpstreamError(response.status, "Seedream 图片下载失败");
+  }
+  const contentType = response.headers.get("content-type") || "image/png";
+  const buffer = Buffer.from(await response.arrayBuffer());
+  return `data:${contentType};base64,${buffer.toString("base64")}`;
+}
+
+function parseSeedreamError(raw: string): string {
+  try {
+    const data = JSON.parse(raw);
+    const error = asRecord(data).error;
+    if (typeof error === "string") return error;
+    const message = asRecord(error).message || asRecord(data).message;
+    return typeof message === "string" ? message : "";
+  } catch {
+    return raw.slice(0, 300);
+  }
 }
 
 async function requestImageWithFallback(body: GeminiRequestBody, apiKey: string, model: string, perspective: string) {
