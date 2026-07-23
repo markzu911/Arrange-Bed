@@ -110,6 +110,21 @@ async function handleGemini(req: JsonRequest, res: ServerResponse) {
   const body = (await readJsonBody<GeminiRequestBody>(req)) || {};
   const provider = String(process.env.IMAGE_PROVIDER || "gemini").toLowerCase();
 
+  if (provider === "ark") {
+    const apiKey = process.env.ARK_API_KEY;
+    if (!apiKey) {
+      sendJson(res, 500, {
+        success: false,
+        message: "未配置 ARK_API_KEY，当前无法调用火山方舟。请在 Vercel Preview 环境变量中配置后重新部署。"
+      });
+      return;
+    }
+
+    const response = await handleArkProvider(body, apiKey);
+    sendJson(res, 200, response);
+    return;
+  }
+
   if (body.mode === "generate" && provider === "seedream") {
     const apiKey = process.env.ARK_API_KEY || process.env.SEEDREAM_API_KEY;
     if (!apiKey) {
@@ -243,6 +258,98 @@ async function handleGemini(req: JsonRequest, res: ServerResponse) {
   sendJson(res, 200, parseGeneratedImages(data, body));
 }
 
+async function handleArkProvider(body: GeminiRequestBody, apiKey: string) {
+  if (body.mode === "analyze") {
+    const data = await requestArkVisionJson(body, apiKey);
+    return { success: true, analysis: parseAnalysis(toGeminiTextResponse(extractArkText(data))) };
+  }
+
+  if (body.mode === "quality") {
+    const data = await requestArkVisionJson(body, apiKey);
+    return { success: true, quality: parseQuality(toGeminiTextResponse(extractArkText(data))) };
+  }
+
+  if (body.mode === "generate") {
+    const images = await generateSeedreamImages(body, apiKey);
+    return { success: true, images };
+  }
+
+  if (body.mode === "erase" || body.mode === "cutout") {
+    const model = process.env.ARK_EDIT_MODEL;
+    if (!model) {
+      throw new GeminiUpstreamError(501, "火山方舟图片编辑模型尚未配置。请提供 SeedEdit 3.0 的准确模型 ID 后，再启用清场/抠图能力。");
+    }
+    const imageUrl = await requestArkEditImage(body, apiKey, model);
+    return {
+      success: true,
+      images: [{
+        perspective: "wide",
+        title: body.mode === "erase" ? "干净场景" : "床具前景",
+        imageUrl
+      }]
+    };
+  }
+
+  throw new GeminiUpstreamError(400, "不支持的火山方舟任务类型");
+}
+
+async function requestArkVisionJson(body: GeminiRequestBody, apiKey: string) {
+  const model = process.env.ARK_VISION_MODEL || "doubao-seed-2.1-pro";
+  const response = await fetchWithDiagnostics(
+    `ark-vision:${model}:${body.mode || "unknown"}`,
+    `${getArkApiBase()}/chat/completions`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{
+          role: "user",
+          content: buildArkVisionContent(body)
+        }],
+        temperature: 0.1,
+        response_format: { type: "json_object" }
+      })
+    }
+  );
+  const raw = await response.text();
+  if (!response.ok) {
+    throw new GeminiUpstreamError(response.status, parseArkError(raw) || "火山方舟视觉理解请求失败");
+  }
+  return JSON.parse(raw);
+}
+
+function buildArkVisionContent(body: GeminiRequestBody) {
+  return [
+    { type: "text", text: body.systemPrompt || "" },
+    ...buildArkVisionImages(body).map((url) => ({ type: "image_url", image_url: { url } }))
+  ];
+}
+
+function buildArkVisionImages(body: GeminiRequestBody): string[] {
+  return [
+    imageToDataUrl(body.roomImage),
+    ...(body.roomReferenceImages || []).map(imageToDataUrl),
+    imageToDataUrl(getBeddingImage(body)),
+    imageToDataUrl(body.productReferenceImage),
+    imageToDataUrl(body.resultImage)
+  ].filter((item): item is string => Boolean(item));
+}
+
+async function requestArkEditImage(body: GeminiRequestBody, apiKey: string, model: string) {
+  const source = body.mode === "erase" ? body.roomImage : getBeddingImage(body);
+  const image = imageToDataUrl(source);
+  if (!image) {
+    throw new GeminiUpstreamError(400, body.mode === "erase" ? "缺少卧室图片，无法执行清场编辑。" : "缺少床具图片，无法执行前景提取。");
+  }
+
+  const prompt = body.perspectivePrompts?.wide || body.systemPrompt || "";
+  return requestArkImageGeneration(apiKey, model, prompt, [image], normalizeArkImageSize(body.settings?.clarity), body.mode || "edit");
+}
+
 async function generateImagesWithInteractions(body: GeminiRequestBody, apiKey: string, model: string) {
   const requested = body.settings?.perspectives?.length ? body.settings.perspectives : ["medium"];
   const { response, raw, model: selectedModel, api: selectedApi } = await requestImageWithFallback(body, apiKey, model, "wide");
@@ -276,11 +383,11 @@ async function generateImagesWithInteractions(body: GeminiRequestBody, apiKey: s
 
 async function generateSeedreamImages(body: GeminiRequestBody, apiKey: string) {
   const requested = body.settings?.perspectives?.length ? body.settings.perspectives : ["medium"];
-  const model = process.env.SEEDREAM_MODEL || "doubao-seedream-5-0-pro-260628";
-  const size = normalizeSeedreamSize(body.settings?.clarity);
+  const model = process.env.ARK_IMAGE_MODEL || process.env.SEEDREAM_MODEL || "doubao-seedream-5-0-pro-260628";
+  const size = normalizeArkImageSize(body.settings?.clarity);
   const masterPrompt = body.perspectivePrompts?.wide || body.systemPrompt || "";
   const masterImages = buildSeedreamImageInputs(body);
-  const masterImage = await requestSeedreamImage(apiKey, model, masterPrompt, masterImages, size, "wide");
+  const masterImage = await requestArkImageGeneration(apiKey, model, masterPrompt, masterImages, size, "wide");
   const results = new Map<string, { perspective: string; title: string; imageUrl: string }>();
 
   if (requested.includes("wide")) {
@@ -289,7 +396,7 @@ async function generateSeedreamImages(body: GeminiRequestBody, apiKey: string) {
 
   await Promise.all(requested.filter((item) => item !== "wide").map(async (perspective) => {
     const prompt = body.perspectivePrompts?.[perspective] || body.systemPrompt || "";
-    const imageUrl = await requestSeedreamImage(
+    const imageUrl = await requestArkImageGeneration(
       apiKey,
       model,
       prompt,
@@ -310,12 +417,12 @@ async function generateSeedreamImages(body: GeminiRequestBody, apiKey: string) {
   return requested.map((perspective) => results.get(perspective)).filter(Boolean);
 }
 
-async function requestSeedreamImage(apiKey: string, model: string, prompt: string, images: string[], size: string, perspective: string) {
+async function requestArkImageGeneration(apiKey: string, model: string, prompt: string, images: string[], size: string, perspective: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 110_000);
   const response = await fetchWithDiagnostics(
-    `seedream:${model}:${perspective}`,
-    `${process.env.SEEDREAM_API_BASE || "https://ark.cn-beijing.volces.com/api/v3"}/images/generations`,
+    `ark-image:${model}:${perspective}`,
+    `${getArkApiBase()}/images/generations`,
     {
       method: "POST",
       headers: {
@@ -330,13 +437,13 @@ async function requestSeedreamImage(apiKey: string, model: string, prompt: strin
         response_format: "url",
         size,
         stream: false,
-        watermark: process.env.SEEDREAM_WATERMARK === "true"
+        watermark: (process.env.ARK_WATERMARK || process.env.SEEDREAM_WATERMARK) === "true"
       })
     }
   ).finally(() => clearTimeout(timeout));
   const raw = await response.text();
   if (!response.ok) {
-    throw new GeminiUpstreamError(response.status, parseSeedreamError(raw) || "Seedream 图片生成失败");
+    throw new GeminiUpstreamError(response.status, parseArkError(raw) || "火山方舟图片生成失败");
   }
 
   const imageUrl = extractSeedreamImageUrl(JSON.parse(raw));
@@ -368,7 +475,8 @@ function imageToDataUrl(image?: { base64: string; mimeType: string }): string | 
   return `data:${image.mimeType || "image/jpeg"};base64,${image.base64}`;
 }
 
-function normalizeSeedreamSize(clarity?: string): string {
+function normalizeArkImageSize(clarity?: string): string {
+  if (process.env.ARK_IMAGE_SIZE) return process.env.ARK_IMAGE_SIZE;
   if (process.env.SEEDREAM_SIZE) return process.env.SEEDREAM_SIZE;
   return clarity === "1K" ? "1K" : "2K";
 }
@@ -396,7 +504,31 @@ async function downloadImageAsDataUrl(url: string): Promise<string> {
   return `data:${contentType};base64,${buffer.toString("base64")}`;
 }
 
-function parseSeedreamError(raw: string): string {
+function getArkApiBase(): string {
+  return (process.env.ARK_API_BASE || process.env.SEEDREAM_API_BASE || "https://ark.cn-beijing.volces.com/api/v3").replace(/\/+$/, "");
+}
+
+function extractArkText(data: unknown): string {
+  const choices = asRecord(data).choices;
+  if (Array.isArray(choices)) {
+    const content = asRecord(asRecord(choices[0]).message).content;
+    if (typeof content === "string") return content;
+    if (Array.isArray(content)) {
+      return content
+        .map((item) => asRecord(item).text)
+        .filter((text): text is string => typeof text === "string")
+        .join("\n")
+        .trim();
+    }
+  }
+  return "";
+}
+
+function toGeminiTextResponse(text: string) {
+  return { candidates: [{ content: { parts: [{ text }] } }] };
+}
+
+function parseArkError(raw: string): string {
   try {
     const data = JSON.parse(raw);
     const error = asRecord(data).error;
