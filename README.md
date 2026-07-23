@@ -45,12 +45,12 @@ ARK_API_KEY=你的火山方舟 Key
 ARK_API_BASE=https://ark.cn-beijing.volces.com/api/v3
 ARK_VISION_MODEL=doubao-seed-2.1-pro
 ARK_IMAGE_MODEL=doubao-seedream-5-0-pro-260628
-ARK_EDIT_MODEL=待补充 SeedEdit 3.0 准确模型 ID
+ARK_EDIT_MODEL=doubao-seedream-5-0-pro-260628
 ARK_IMAGE_SIZE=1K
 ARK_WATERMARK=false
 ```
 
-`analyze` 和 `quality` 使用 `ARK_VISION_MODEL`；`generate` 使用 `ARK_IMAGE_MODEL`；`erase` 和 `cutout` 已预留 `ARK_EDIT_MODEL`，在未配置准确 SeedEdit 模型 ID 前会返回明确提示。不要把 `ARK_API_KEY` 注入 Vite 前端变量，也不要提交到 GitHub。
+`analyze` 和 `quality` 使用 `ARK_VISION_MODEL`；`generate` 使用 `ARK_IMAGE_MODEL`；`erase` 和 `cutout` 使用 `ARK_EDIT_MODEL`。目前 Seedream 5.0 pro 同时承担图片生成和图片编辑能力，所以 `ARK_EDIT_MODEL` 可以与 `ARK_IMAGE_MODEL` 保持一致。不要把 `ARK_API_KEY` 注入 Vite 前端变量，也不要提交到 GitHub。
 
 ## 主平台嵌入
 

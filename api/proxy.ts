@@ -275,10 +275,7 @@ async function handleArkProvider(body: GeminiRequestBody, apiKey: string) {
   }
 
   if (body.mode === "erase" || body.mode === "cutout") {
-    const model = process.env.ARK_EDIT_MODEL;
-    if (!model) {
-      throw new GeminiUpstreamError(501, "火山方舟图片编辑模型尚未配置。请提供 SeedEdit 3.0 的准确模型 ID 后，再启用清场/抠图能力。");
-    }
+    const model = getArkEditModel();
     const imageUrl = await requestArkEditImage(body, apiKey, model);
     return {
       success: true,
@@ -291,6 +288,10 @@ async function handleArkProvider(body: GeminiRequestBody, apiKey: string) {
   }
 
   throw new GeminiUpstreamError(400, "不支持的火山方舟任务类型");
+}
+
+function getArkEditModel() {
+  return process.env.ARK_EDIT_MODEL || process.env.ARK_IMAGE_MODEL || process.env.SEEDREAM_MODEL || "doubao-seedream-5-0-pro-260628";
 }
 
 async function requestArkVisionJson(body: GeminiRequestBody, apiKey: string) {
